@@ -1,0 +1,25 @@
+import type { Severity } from '@/engine/types'
+
+export const SEVERITY_STYLE: Record<Severity, string> = {
+  NORMAL: 'bg-emerald-50 text-emerald-700 ring-emerald-300/70',
+  ALERT: 'bg-amber-50 text-amber-700 ring-amber-300/80',
+  EMERGENCY: 'bg-rose-50 text-rose-700 ring-rose-300 animate-pulse',
+}
+
+export function freqClass(f: number) {
+  if (f < 49.8 || f > 50.1) return 'text-red-500'
+  if (f < 49.9 || f > 50.05) return 'text-amber-600'
+  return 'text-emerald-600'
+}
+
+export const chartTooltip = {
+  contentStyle: { background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10, fontSize: 12, boxShadow: '0 4px 14px rgba(15,23,42,0.08)' },
+  labelStyle: { color: '#64748b' },
+}
+
+/** "+12" / "−40" / "0" — avoids rendering "-0" for values that round to zero */
+export function signed(v: number) {
+  const r = Math.round(v)
+  if (r === 0) return '0'
+  return r > 0 ? `+${r}` : `${r}`
+}
