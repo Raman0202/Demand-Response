@@ -3,10 +3,10 @@ import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Line, OrbitControls } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
-import { SLDC } from '@/data/karnataka'
+import { SLDC } from '@/data/topology'
 import { project, STATE_TOP } from '@/lib/geo'
-import type { DispatchPhase } from '@/store/useDecisionStore'
-import { useUIStore, type CameraPreset } from '@/store/useUIStore'
+export type DispatchPhase = 'idle' | 'sending' | 'acking' | 'ramping' | 'done'
+import { useUI as useUIStore, type CameraPreset } from '@/store/useUI'
 
 export interface WaveTarget {
   id: string

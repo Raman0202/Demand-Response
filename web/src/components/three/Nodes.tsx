@@ -1,10 +1,10 @@
 import { useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
-import { ASSET_TYPE_META, BUSES, GENERATORS, SLDC } from '@/data/karnataka'
-import type { FlexAsset, Generator } from '@/engine/types'
+import { ASSET_TYPE_META, BUSES, GENERATORS, SLDC } from '@/data/topology'
+import type { Asset as FlexAsset, Generator } from '@/data/types'
 import { loadingColor, project, STATE_TOP } from '@/lib/geo'
-import { useUIStore, type Selection } from '@/store/useUIStore'
+import { useUI as useUIStore, type Selection } from '@/store/useUI'
 
 import { STATUS_COLOR, type Focus, type FocusStatus } from './focus'
 

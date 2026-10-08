@@ -13,10 +13,10 @@ COPY . .
 EXPOSE 5173
 CMD ["npx", "vite", "--host", "0.0.0.0", "--port", "5173"]
 
-# ---- build: type-check, test the engine, produce static bundle ----
+# ---- build: type-check and produce the static bundle ----
 FROM deps AS build
 COPY . .
-RUN npx tsc -b && npx vitest run && npx vite build
+RUN npx tsc -b && npx vite build
 
 # ---- runtime: static files behind nginx ----
 FROM nginx:1.27-alpine AS runtime

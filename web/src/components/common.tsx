@@ -130,22 +130,32 @@ export function FitPager<T>({
   className?: string
 }) {
   const ref = useRef<HTMLDivElement>(null)
+  const body = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState(8)
   const [page, setPage] = useState(0)
   useLayoutEffect(() => {
     const el = ref.current
     if (!el) return
-    const measure = () => setSize(Math.max(2, Math.floor((el.clientHeight - reserve) / rowHeight)))
+    const measure = () => setSize(Math.max(1, Math.floor((el.clientHeight - reserve) / rowHeight)))
     measure()
     const ro = new ResizeObserver(measure)
     ro.observe(el)
     return () => ro.disconnect()
   }, [rowHeight, reserve])
+  // rowHeight is an estimate: if the rendered rows are taller, shrink the page until it fits (never scroll).
+  // Runs after every render but only ever decrements, so it terminates at the largest size that fits.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useLayoutEffect(() => {
+    const b = body.current
+    if (b && size > 1 && b.scrollHeight > b.clientHeight + 1) setSize(size - 1)
+  })
   const pages = Math.max(1, Math.ceil(items.length / size))
   const p = Math.min(page, pages - 1)
   return (
     <div ref={ref} className={cn('flex h-full min-h-0 flex-col', className)}>
-      <div className="min-h-0 flex-1 overflow-hidden">{render(items.slice(p * size, (p + 1) * size), p * size)}</div>
+      <div ref={body} className="min-h-0 flex-1 overflow-hidden">
+        {render(items.slice(p * size, (p + 1) * size), p * size)}
+      </div>
       {pages > 1 && (
         <div className="flex shrink-0 items-center justify-between border-t px-2 pt-1.5 text-[11px] text-muted-foreground">
           <span>

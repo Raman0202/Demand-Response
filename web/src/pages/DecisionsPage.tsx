@@ -1,0 +1,651 @@
+// Decisions — what the system intends, is doing and has done. Approve / reject / abort with full evidence.
+import { useState } from 'react'
+import { Bar as RBar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts'
+import { AlertTriangle, Ban, Check, CheckCircle2, Loader2, OctagonX, Workflow, XCircle } from 'lucide-react'
+import { Calc, FitPager, SectionTabs } from '@/components/common'
+import { Empty, PageHeader, Panel, Stat, StoryChain } from '@/components/page'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Textarea } from '@/components/ui/textarea'
+import { ASSET_TYPE_META } from '@/data/topology'
+import type { Command, DecisionSummary } from '@/data/types'
+import { useApi } from '@/hooks'
+import { api } from '@/lib/api'
+import { fmtMW, fmtRs } from '@/lib/geo'
+import { chartTooltip } from '@/lib/ui'
+import { cn } from '@/lib/utils'
+import { useAuth } from '@/store/useAuth'
+import { clock, clockS } from '@/store/useLive'
+import { useUI } from '@/store/useUI'
+
+const STATE_STYLE: Record<string, string> = {
+  AWAITING_APPROVAL: 'bg-amber-100 text-amber-800',
+  EXECUTING: 'bg-sky-100 text-sky-800',
+  RELEASING: 'bg-violet-100 text-violet-800',
+  COMPLETED: 'bg-emerald-100 text-emerald-800',
+  REJECTED: 'bg-slate-200 text-slate-700',
+  ABORTED: 'bg-rose-100 text-rose-800',
+}
+
+interface Alloc {
+  id: string
+  name: string
+  short: string
+  type: string
+  mw: number
+  mw_by_block: number[]
+  expected_mw: number
+  reliability: number
+  effective_cost: number
+  cost_rs: number
+  rank: number
+  caps: string[]
+  protocol: string
+}
+interface Full extends DecisionSummary {
+  narrative: Record<string, unknown>
+  awaiting: string[]
+  current: {
+    reason: string
+    requirement_mw: number
+    assessment: {
+      frequency: number
+      ace: number
+      ace_terms: { Ia: number; Is: number; bf: number; freq_term: number }
+      deviation_mw: number
+      drawal_mw: number
+      schedule_mw: number
+      severity: string
+      margin_mw: number
+      confidence: number
+      dsm: {
+        nr: number
+        nr_terms: { A: number; B: number; C: number; binding: string }
+        per_block_rs: number
+        energy_mwh: number
+        band_mw: number
+        freq_band: string
+        mult: number[]
+        marginal_rate: number
+      }
+    }
+    flexibility: {
+      id: string
+      short: string
+      type: string
+      available_mw: number
+      expected_mw: number
+      reliability: number
+      effective_cost: number
+      eligible: boolean
+      exclusions: string[]
+      notes: string[]
+      locked_mw: number
+    }[]
+    strategies: {
+      id: string
+      label: string
+      description: string
+      total_rs: number
+      coverage_pct: number
+      time_to_effect_min: number | null
+      max_line_loading: number
+      resources: number
+    }[]
+    allocations: Alloc[]
+    plan: {
+      peak_mw: number
+      coverage_pct: number
+      supplied: number[]
+      residual: number[]
+      requirement: number[]
+      costs: Record<string, number>
+      bindings: { label: string; detail: string; shadow_price_rs_per_mw: number }[]
+      skipped: { asset_id: string; name: string; reason: string }[]
+      max_loading_after: { label: string; loading: number }
+      solver: { engine: string; solve_ms: number; variables: number; constraints: number; message: string }
+    }
+    twin: { ok: boolean; checks: { id: string; label: string; status: string; detail: string }[] }
+    twin_passes: { pass: number; ok: boolean; note: string }[]
+    policy: { level_name: string; auto: string[]; approval: string[]; reasons: string[] }
+  }
+  revisions: {
+    rev: number
+    ts: number
+    reason: string
+    requirement_mw: number
+    planned_mw: number
+    resources: number
+    auto_mw: number
+    awaiting_mw: number
+    twin_ok: boolean
+    solve_ms: number
+  }[]
+  outcome: Record<string, number>
+  settlement: null | {
+    rows: {
+      asset_id: string
+      name: string
+      expected_mwh: number
+      delivered_mwh: number
+      performance: number
+      perf_factor: number
+      payment_rs: number
+      reliability_before: number
+      reliability_after: number
+    }[]
+    payments_rs: number
+    avoided_dsm_rs: number
+    net_benefit_rs: number
+    delivered_mwh: number
+    expected_mwh: number
+    duration_min: number
+  }
+  approval_history: { user: string; role: string; ts: number; mw: number; revision: number }[]
+  commands: Command[]
+}
+
+export function DecisionsPage() {
+  const decisionId = useUI((s) => s.decisionId)
+  const go = useUI((s) => s.go)
+  const { data } = useApi<{ items: DecisionSummary[] }>('/decisions?limit=60', { intervalMs: 5000 })
+  const items = data?.items ?? []
+  const selected = decisionId ?? items.find((d) => ['AWAITING_APPROVAL', 'EXECUTING', 'RELEASING'].includes(d.state))?.id ?? items[0]?.id ?? null
+  return (
+    <div className="flex h-full flex-col gap-3">
+      <PageHeader icon={<Workflow className="size-4" />} title="Decisions" />
+      <div className="grid min-h-0 flex-1 grid-cols-[300px_minmax(0,1fr)] gap-3">
+        <Panel title="Decision log" bodyClass="p-1.5">
+          {items.length === 0 ? (
+            <Empty>No decisions yet. The platform opens one automatically when ACE stays beyond ±100 MW.</Empty>
+          ) : (
+            <FitPager
+              items={items}
+              rowHeight={62}
+              reserve={36}
+              render={(slice) => (
+                <div className="space-y-1">
+                  {slice.map((d) => (
+                    <button
+                      key={d.id}
+                      onClick={() => go('decisions', d.id)}
+                      className={cn(
+                        'w-full rounded-lg border px-2.5 py-1.5 text-left transition hover:bg-slate-50',
+                        selected === d.id && 'border-sky-300 bg-sky-50/70 ring-1 ring-sky-200',
+                      )}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className={cn('rounded px-1.5 text-[9px] font-bold', STATE_STYLE[d.state] ?? 'bg-slate-100')}>{d.state.replace('_', ' ')}</span>
+                        <span className="font-mono text-[10px] text-slate-500">{d.id}</span>
+                        <span className="ml-auto text-[10px] text-slate-400">{clock(d.opened_at)}</span>
+                      </div>
+                      <div className="mt-0.5 truncate text-[12px] font-medium text-slate-700">{d.headline || d.closed_reason}</div>
+                      <div className="text-[10px] text-slate-500">
+                        {d.severity} · rev {d.revision}
+                        {d.net_benefit_rs != null && ` · net ${fmtRs(d.net_benefit_rs)}`}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            />
+          )}
+        </Panel>
+        {selected ? <DecisionDetail id={selected} /> : <Panel>{<Empty>Select a decision.</Empty>}</Panel>}
+      </div>
+    </div>
+  )
+}
+
+function DecisionDetail({ id }: { id: string }) {
+  const { data: d, reload } = useApi<Full>(`/decisions/${id}`, { intervalMs: 4000 })
+  const can = useAuth((s) => s.can)
+  const user = useAuth((s) => s.user)
+  const [dlg, setDlg] = useState<null | 'reject' | 'abort'>(null)
+  const [reason, setReason] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState<string | null>(null)
+  if (!d) return <Panel>{<Empty icon={<Loader2 className="size-5 animate-spin text-slate-400" />}>Loading decision…</Empty>}</Panel>
+  const cur = d.current
+  const open = ['AWAITING_APPROVAL', 'EXECUTING', 'RELEASING'].includes(d.state)
+  const alreadyApproved = d.approvals.some((a) => a.user === user?.username)
+
+  async function act(kind: 'approve' | 'reject' | 'abort') {
+    setBusy(true)
+    setMsg(null)
+    try {
+      const r = await api<DecisionSummary>(`/decisions/${id}/${kind}`, { method: 'POST', body: kind === 'approve' ? undefined : { reason } })
+      setMsg(
+        kind === 'approve'
+          ? r.state === 'EXECUTING'
+            ? 'Approved — commands released for dispatch.'
+            : 'First approval recorded — awaiting dual authorisation.'
+          : `Decision ${r.state.toLowerCase()}.`,
+      )
+      setDlg(null)
+      setReason('')
+      reload()
+    } catch (e) {
+      setMsg((e as Error).message)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <section className="flex min-h-0 flex-col gap-3">
+      {/* header + actions */}
+      <div className="flex shrink-0 items-center gap-3 rounded-xl border bg-white px-3 py-2.5 shadow-xs">
+        <span className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-bold', STATE_STYLE[d.state])}>{d.state.replace('_', ' ')}</span>
+        <div className="min-w-0 flex-1 leading-tight">
+          <div className="truncate text-[14px] font-semibold text-slate-800">{d.headline || d.closed_reason}</div>
+          <div className="text-[11px] text-slate-500">
+            {d.id} · opened {clockS(d.opened_at)} · revision {d.revision} ({cur?.reason}) · {d.severity} · {d.direction}
+            {d.approval_history.length > 0 && ` · approvals: ${d.approval_history.map((a) => `${a.user} (r${a.revision})`).join(', ')}`}
+          </div>
+        </div>
+        {msg && <span className="max-w-[260px] truncate text-[11px] text-slate-600">{msg}</span>}
+        {d.state === 'AWAITING_APPROVAL' && can('approve') && !alreadyApproved && (
+          <Button size="sm" disabled={busy || (d.approvals.length > 0 && !can('approve_dual'))} onClick={() => act('approve')}>
+            {busy ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />} {d.approvals.length ? 'Second approval' : `Approve ${d.awaiting_mw.toFixed(0)} MW`}
+          </Button>
+        )}
+        {d.state === 'AWAITING_APPROVAL' && can('reject') && (
+          <Button size="sm" variant="outline" onClick={() => setDlg('reject')}>
+            <Ban className="size-4" /> Reject
+          </Button>
+        )}
+        {open && d.state !== 'AWAITING_APPROVAL' && can('abort') && (
+          <Button size="sm" variant="outline" className="text-rose-700" onClick={() => setDlg('abort')}>
+            <OctagonX className="size-4" /> Abort & release
+          </Button>
+        )}
+      </div>
+
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-3">
+        <Panel title="Decision story" bodyClass="overflow-hidden">
+          <StoryChain narrative={d.narrative} />
+        </Panel>
+        <Panel bodyClass="flex flex-col">
+          {cur ? (
+            <SectionTabs
+              sections={[
+                { id: 'plan', label: `Plan (${cur.allocations.length})`, content: <PlanTab d={d} /> },
+                { id: 'evidence', label: 'Assessment', content: <EvidenceTab d={d} /> },
+                { id: 'alts', label: 'Alternatives', content: <AltTab d={d} /> },
+                { id: 'twin', label: `Twin ${cur.twin.ok ? '✓' : '✕'}`, content: <TwinTab d={d} /> },
+                { id: 'cmds', label: `Commands (${d.commands?.length ?? 0})`, content: <CommandsTab d={d} /> },
+                { id: 'revs', label: `Revisions (${d.revisions.length})`, content: <RevisionsTab d={d} /> },
+                ...(d.settlement ? [{ id: 'settle', label: 'Settlement', content: <SettleTab d={d} /> }] : []),
+              ]}
+            />
+          ) : (
+            <Empty>No evidence recorded.</Empty>
+          )}
+        </Panel>
+      </div>
+
+      <Dialog open={!!dlg} onOpenChange={(o) => !o && setDlg(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{dlg === 'reject' ? 'Reject decision' : 'Abort decision and release resources'}</DialogTitle>
+            <DialogDescription>
+              {dlg === 'reject'
+                ? 'Pending commands are cancelled; anything already executing is released. The platform will not re-propose for 30 minutes unless the situation escalates.'
+                : 'All resources in this decision receive a release command (setpoint 0). This override is audited.'}
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea placeholder="Reason (required, audited)" value={reason} onChange={(e) => setReason(e.target.value)} />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDlg(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" disabled={reason.trim().length < 3 || busy} onClick={() => act(dlg!)}>
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </section>
+  )
+}
+
+function PlanTab({ d }: { d: Full }) {
+  const cur = d.current
+  const auto = new Set(cur.policy.auto)
+  const chart = cur.plan.requirement.map((r, b) => {
+    const row: Record<string, number | string> = { block: `B${b + 1}`, requirement: r }
+    for (const a of cur.allocations) row[a.short] = +(a.mw_by_block[b] * a.reliability).toFixed(1)
+    return row
+  })
+  const colors = ['#7dd3fc', '#86efac', '#fcd34d', '#c4b5fd', '#f9a8d4', '#5eead4', '#fde68a', '#fda4af', '#bef264', '#93c5fd', '#d8b4fe', '#6ee7b7']
+  return (
+    <div className="grid h-full grid-rows-[auto_minmax(0,0.8fr)_minmax(0,1.2fr)] gap-2">
+      <div className="grid grid-cols-4 gap-2 text-[11px]">
+        <Stat label="Planned (block 1)" value={fmtMW(cur.plan.peak_mw)} />
+        <Stat label="Coverage" value={`${cur.plan.coverage_pct.toFixed(0)}%`} />
+        <Stat label="Saving vs do-nothing" value={fmtRs(cur.plan.costs.savings_rs)} tone={cur.plan.costs.savings_rs > 0 ? 'good' : 'warn'} />
+        <Stat label={`${cur.plan.solver.engine}`} value={`${cur.plan.solver.solve_ms.toFixed(0)} ms · ${cur.plan.solver.variables} vars`} />
+      </div>
+      <div className="min-h-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={chart}>
+            <CartesianGrid stroke="#eef2f7" vertical={false} />
+            <XAxis dataKey="block" tick={{ fontSize: 10, fill: '#94a3b8' }} />
+            <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} width={40} />
+            <RTooltip {...chartTooltip} formatter={(v) => `${Number(v).toFixed(0)} MW`} />
+            {cur.allocations.map((a, i) => (
+              <RBar key={a.id} dataKey={a.short} stackId="s" fill={colors[i % colors.length]} isAnimationActive={false} />
+            ))}
+            <Line dataKey="requirement" stroke="#475569" strokeDasharray="5 4" dot={false} strokeWidth={2} isAnimationActive={false} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+      <FitPager
+        items={cur.allocations}
+        rowHeight={33}
+        reserve={70}
+        render={(slice) => (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>#</TableHead>
+                <TableHead>Resource</TableHead>
+                <TableHead className="text-right">MW by block</TableHead>
+                <TableHead className="text-right">₹/kWh eff.</TableHead>
+                <TableHead>Execution</TableHead>
+                <TableHead>Limits</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {slice.map((a) => (
+                <TableRow key={a.id}>
+                  <TableCell className="font-mono text-[11px]">{a.rank}</TableCell>
+                  <TableCell className="text-xs">
+                    <span className="mr-1.5 inline-block size-2 rounded-sm" style={{ background: ASSET_TYPE_META[a.type]?.color }} />
+                    {a.short}
+                  </TableCell>
+                  <TableCell className="text-right font-mono text-[11px]">{a.mw_by_block.map((x) => x.toFixed(0)).join(' · ')}</TableCell>
+                  <TableCell className="text-right font-mono text-[11px]">{a.effective_cost.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {auto.has(a.id) ? (
+                      <Badge variant="info">auto</Badge>
+                    ) : d.awaiting.includes(a.id) ? (
+                      <Badge variant="warning">needs approval</Badge>
+                    ) : (
+                      <Badge variant="success">approved</Badge>
+                    )}
+                  </TableCell>
+                  <TableCell className="max-w-[160px] truncate text-[10px] text-slate-500">{a.caps.join(' · ') || '—'}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      />
+    </div>
+  )
+}
+
+function EvidenceTab({ d }: { d: Full }) {
+  const a = d.current.assessment
+  const t = a.ace_terms
+  return (
+    <div className="grid h-full grid-cols-2 content-start gap-2 overflow-hidden">
+      <Calc
+        title="Area Control Error (IEGC)"
+        formula="ACE = (Ia − Is) − 10·Bf·(Fa − Fs)"
+        steps={[`(${t.Ia.toFixed(0)} − (${t.Is.toFixed(0)})) − 10·(${t.bf})·(${a.frequency.toFixed(3)} − 50)`]}
+        result={`${a.ace.toFixed(0)} MW → requirement ${d.current.requirement_mw.toFixed(0)} MW ${d.direction}`}
+      />
+      <Calc
+        title="Deviation (CERC DSM basis)"
+        formula="D = Actual drawal − Scheduled drawal"
+        steps={[`${a.drawal_mw.toFixed(0)} − ${a.schedule_mw.toFixed(0)}`]}
+        result={`${a.deviation_mw.toFixed(0)} MW`}
+      />
+      <Calc
+        title="Normal Rate (DSM Regs 2024)"
+        formula="NR = max(A DAM, B RTM, C ⅓·DAM+⅓·RTM+⅓·ASC)"
+        steps={[`A ₹${a.dsm.nr_terms.A.toFixed(2)} · B ₹${a.dsm.nr_terms.B.toFixed(2)} · C ₹${a.dsm.nr_terms.C.toFixed(2)}`]}
+        result={`NR ₹${a.dsm.nr.toFixed(2)}/kWh (binding ${a.dsm.nr_terms.binding})`}
+      />
+      <Calc
+        title="DSM exposure per 15-min block"
+        formula={`E × m·NR, band ${a.dsm.band_mw.toFixed(0)} MW, ${a.dsm.freq_band} frequency`}
+        steps={[`${a.dsm.energy_mwh.toFixed(1)} MWh · multipliers ${a.dsm.mult.join(' / ')}`]}
+        result={`${fmtRs(a.dsm.per_block_rs)} per block (marginal ₹${a.dsm.marginal_rate.toFixed(2)}/kWh)`}
+      />
+      <Calc
+        title="Reserve & data"
+        formula="P90 margin = 1.28·√(σ_demand² + σ_RE²)"
+        result={`${a.margin_mw.toFixed(0)} MW held free · data confidence ${(a.confidence * 100).toFixed(0)}%`}
+      />
+      <div className="rounded-lg border bg-white p-3 text-[11px]">
+        <div className="mb-1 font-semibold text-slate-600">Network constraints (LP duals)</div>
+        {d.current.plan.bindings.length === 0 ? (
+          <div className="text-slate-500">
+            No binding line limits. Max loading after dispatch: {d.current.plan.max_loading_after.label} {(d.current.plan.max_loading_after.loading * 100).toFixed(0)}%.
+          </div>
+        ) : (
+          d.current.plan.bindings.slice(0, 4).map((b) => (
+            <div key={b.label} className="flex gap-1.5 text-rose-700">
+              <AlertTriangle className="mt-0.5 size-3 shrink-0" /> {b.detail}
+              {b.shadow_price_rs_per_mw > 0 && <span className="text-slate-500"> · shadow ₹{b.shadow_price_rs_per_mw}/MWh</span>}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}
+
+function AltTab({ d }: { d: Full }) {
+  const s = d.current.strategies
+  const best = [...s].sort((a, b) => a.total_rs - b.total_rs)[0]
+  return (
+    <div className="grid h-full grid-cols-3 grid-rows-2 gap-2">
+      {s.map((x) => (
+        <div key={x.id} className={cn('flex flex-col rounded-xl border p-2.5', x.id === best?.id && 'border-emerald-300 bg-emerald-50/50')}>
+          <div className="flex items-center justify-between text-[12px] font-semibold">
+            {x.label}
+            {x.id === best?.id && <Badge variant="success">chosen class</Badge>}
+          </div>
+          <div className="line-clamp-1 text-[10px] text-slate-500">{x.description}</div>
+          <div className="mt-auto font-mono text-[15px] font-semibold">{fmtRs(x.total_rs)}</div>
+          <div className="text-[10px] text-slate-500">
+            coverage {x.coverage_pct.toFixed(0)}% · {x.resources} res · max line {(x.max_line_loading * 100).toFixed(0)}%
+            {x.time_to_effect_min != null && ` · ${x.time_to_effect_min < 1 ? '<1' : x.time_to_effect_min.toFixed(0)} min`}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function TwinTab({ d }: { d: Full }) {
+  const t = d.current.twin
+  return (
+    <div className="flex h-full flex-col gap-2">
+      <div className="flex shrink-0 flex-wrap gap-1.5">
+        {d.current.twin_passes.map((p) => (
+          <span key={p.pass} className={cn('rounded-lg px-2 py-1 text-[10px]', p.ok ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800')}>
+            Pass {p.pass}: {p.note}
+          </span>
+        ))}
+      </div>
+      <div className="grid min-h-0 flex-1 auto-rows-min grid-cols-3 gap-1.5 overflow-hidden">
+        {t.checks.map((c) => (
+          <div
+            key={c.id}
+            className={cn(
+              'flex gap-1.5 rounded-lg border px-2 py-1.5',
+              c.status === 'fail' ? 'border-rose-200 bg-rose-50' : c.status === 'warn' ? 'border-amber-200 bg-amber-50/60' : 'bg-white',
+            )}
+          >
+            {c.status === 'pass' ? (
+              <CheckCircle2 className="size-3.5 shrink-0 text-emerald-500" />
+            ) : c.status === 'warn' ? (
+              <AlertTriangle className="size-3.5 shrink-0 text-amber-500" />
+            ) : (
+              <XCircle className="size-3.5 shrink-0 text-rose-500" />
+            )}
+            <div className="min-w-0">
+              <div className="text-[11px] font-medium">{c.label}</div>
+              <div className="line-clamp-2 text-[10px] text-slate-500">{c.detail}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+const CMD_STYLE: Record<string, 'info' | 'warning' | 'success' | 'destructive' | 'secondary' | 'outline'> = {
+  AWAITING_APPROVAL: 'warning',
+  READY: 'info',
+  SENT: 'info',
+  ACKED: 'info',
+  EXECUTING: 'success',
+  COMPLETED: 'secondary',
+  SUPERSEDED: 'outline',
+  CANCELLED: 'outline',
+  FAILED: 'destructive',
+}
+
+function CommandsTab({ d }: { d: Full }) {
+  const cmds = [...(d.commands ?? [])].reverse()
+  return (
+    <FitPager
+      items={cmds}
+      rowHeight={33}
+      render={(slice) => (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Time</TableHead>
+              <TableHead>Resource</TableHead>
+              <TableHead>Channel</TableHead>
+              <TableHead className="text-right">Setpoint</TableHead>
+              <TableHead>State</TableHead>
+              <TableHead className="text-right">Delivered</TableHead>
+              <TableHead>Signature</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {slice.map((c) => (
+              <TableRow key={c.id}>
+                <TableCell className="font-mono text-[11px]">{clockS(c.created)}</TableCell>
+                <TableCell className="max-w-[160px] truncate text-xs">{c.asset_name}</TableCell>
+                <TableCell className="text-[10px] text-slate-500">{c.protocol}</TableCell>
+                <TableCell className="text-right font-mono text-[11px]">{c.kind === 'RELEASE' ? 'release' : `${c.setpoint.toFixed(0)} MW`}</TableCell>
+                <TableCell>
+                  <Badge variant={CMD_STYLE[c.state] ?? 'outline'}>{c.state.replace('_', ' ')}</Badge>
+                  {c.under_delivering && (
+                    <Badge variant="destructive" className="ml-1">
+                      under
+                    </Badge>
+                  )}
+                </TableCell>
+                <TableCell className="text-right font-mono text-[11px]">{c.state === 'EXECUTING' ? `${c.delivered_mw.toFixed(0)} MW` : '—'}</TableCell>
+                <TableCell className="font-mono text-[10px] text-slate-400">{c.signature}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    />
+  )
+}
+
+function RevisionsTab({ d }: { d: Full }) {
+  const revs = [...d.revisions].reverse()
+  return (
+    <FitPager
+      items={revs}
+      rowHeight={33}
+      render={(slice) => (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Rev</TableHead>
+              <TableHead>Time</TableHead>
+              <TableHead>Trigger</TableHead>
+              <TableHead className="text-right">Requirement</TableHead>
+              <TableHead className="text-right">Planned</TableHead>
+              <TableHead className="text-right">Auto / approval</TableHead>
+              <TableHead>Twin</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {slice.map((r) => (
+              <TableRow key={r.rev}>
+                <TableCell className="font-mono text-[11px]">{r.rev}</TableCell>
+                <TableCell className="font-mono text-[11px]">{clockS(r.ts)}</TableCell>
+                <TableCell className="text-[11px]">{r.reason}</TableCell>
+                <TableCell className="text-right font-mono text-[11px]">{r.requirement_mw.toFixed(0)}</TableCell>
+                <TableCell className="text-right font-mono text-[11px]">
+                  {r.planned_mw.toFixed(0)} ({r.resources})
+                </TableCell>
+                <TableCell className="text-right font-mono text-[11px]">
+                  {r.auto_mw.toFixed(0)} / {r.awaiting_mw.toFixed(0)}
+                </TableCell>
+                <TableCell>{r.twin_ok ? <CheckCircle2 className="size-4 text-emerald-500" /> : <XCircle className="size-4 text-rose-500" />}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    />
+  )
+}
+
+function SettleTab({ d }: { d: Full }) {
+  const s = d.settlement!
+  return (
+    <div className="flex h-full flex-col gap-2">
+      <div className="grid shrink-0 grid-cols-4 gap-2">
+        <Stat label="DSM avoided" value={fmtRs(s.avoided_dsm_rs)} tone="good" />
+        <Stat label="Payments" value={fmtRs(s.payments_rs)} />
+        <Stat label="Net benefit" value={fmtRs(s.net_benefit_rs)} tone={s.net_benefit_rs >= 0 ? 'good' : 'warn'} />
+        <Stat label="Delivered / expected" value={`${s.delivered_mwh.toFixed(1)} / ${s.expected_mwh.toFixed(1)} MWh`} />
+      </div>
+      <div className="min-h-0 flex-1">
+        <FitPager
+          items={s.rows}
+          rowHeight={33}
+          render={(slice) => (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Resource</TableHead>
+                  <TableHead className="text-right">Delivered MWh</TableHead>
+                  <TableHead className="text-right">Perf.</TableHead>
+                  <TableHead className="text-right">PF</TableHead>
+                  <TableHead className="text-right">Payment</TableHead>
+                  <TableHead className="text-right">Reliability</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {slice.map((r) => (
+                  <TableRow key={r.asset_id}>
+                    <TableCell className="max-w-[180px] truncate text-xs">{r.name}</TableCell>
+                    <TableCell className="text-right font-mono text-[11px]">{r.delivered_mwh.toFixed(1)}</TableCell>
+                    <TableCell className={cn('text-right font-mono text-[11px]', r.performance < 0.9 && 'text-amber-700')}>{(r.performance * 100).toFixed(0)}%</TableCell>
+                    <TableCell className="text-right font-mono text-[11px]">{r.perf_factor.toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-mono text-[11px]">{fmtRs(r.payment_rs)}</TableCell>
+                    <TableCell className="text-right font-mono text-[11px]">
+                      {(r.reliability_before * 100).toFixed(0)}→{(r.reliability_after * 100).toFixed(0)}%
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        />
+      </div>
+    </div>
+  )
+}

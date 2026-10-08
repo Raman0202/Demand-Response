@@ -1,47 +1,58 @@
 import { Suspense, useMemo, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Grid } from '@react-three/drei'
-import { Battery, Factory, Layers, Map as MapIcon, Mountain, RadioTower, Tag, Waves, X, Zap } from 'lucide-react'
-import { ASSET_BY_ID, ASSET_TYPE_META, BUS_BY_ID, BUSES, GENERATORS, LINES, SLDC } from '@/data/karnataka'
-import type { FlexAsset } from '@/engine/types'
-import { busInjections } from '@/engine/grid'
-import { lineLabel, solveDCPF } from '@/engine/network'
-import { fmtMW, loadingColor, project, STATE_TOP } from '@/lib/geo'
-import { cn } from '@/lib/utils'
-import { useGridStore } from '@/store/useGridStore'
-import { useUIStore, type CameraPreset, type MapLayers, type Selection } from '@/store/useUIStore'
-import type { DispatchPhase } from '@/store/useDecisionStore'
+import { Battery, Cable, Diamond, Factory, Layers, Map as MapIcon, Mountain, RadioTower, Tag, Waves, X, Zap } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { CameraRig, CommandWave, type WaveTarget } from './Effects'
+import { ASSET_TYPE_META, ASSETS, BUS_BY_ID, BUSES, DISCOM_COLORS, GEN_STATIONS, GENERATORS, LINES, LOAD_CHANNELS, SLDC, lineLabel } from '@/data/topology'
+import type { Asset, Frame } from '@/data/types'
+import { fmtMW, loadingColor, project, STATE_TOP } from '@/lib/geo'
+import { cn } from '@/lib/utils'
+import { useLive } from '@/store/useLive'
+import { useUI, type CameraPreset, type MapLayers, type Selection } from '@/store/useUI'
+import { GenStations, LoadChannels } from './Channels'
+import { CameraRig, CommandWave, type DispatchPhase, type WaveTarget } from './Effects'
+import { STATUS_COLOR, type Focus } from './focus'
 import { GridLines } from './GridLines'
 import { LabelLayer, LabelProjector, type MapLabel } from './Labels'
-import { STATUS_COLOR, type Focus } from './focus'
 import { FlexAssets, Generators, SldcBeacon, Substations, TieArrows } from './Nodes'
 import { HeatLayer, StateShape } from './StateShape'
 
 export interface MapOverlay {
   focus?: Focus
   loading?: Record<string, number>
-  flows?: Record<string, number>
   highlightLines?: string[]
   wave?: { targets: WaveTarget[]; phase: DispatchPhase }
   caption?: string
 }
 
 export function KarnatakaMap({ overlay, className, compact }: { overlay?: MapOverlay; className?: string; compact?: boolean }) {
-  const snapshot = useGridStore((s) => s.snapshot)
-  const assets = useGridStore((s) => s.assets)
-  const layers = useUIStore((s) => s.layers)
+  const frame = useLive((s) => s.frame)
+  const layers = useUI((s) => s.layers)
+  if (!frame) return <div className={cn('grid h-full place-items-center rounded-xl border bg-[#f1f5fb] text-sm text-muted-foreground', className)}>Waiting for live state…</div>
+  return <MapInner frame={frame} overlay={overlay} className={className} compact={compact} layers={layers} />
+}
 
-  const net = useMemo(() => solveDCPF(busInjections(snapshot), snapshot.outagedLines), [snapshot])
-  const loading = overlay?.loading ?? net.loading
-  const flows = overlay?.flows ?? net.flows
+function MapInner({ frame, overlay, className, compact, layers }: { frame: Frame; overlay?: MapOverlay; className?: string; compact?: boolean; layers: MapLayers }) {
+  const loading = overlay?.loading ?? frame.loading
+  // live BESS SoC from telemetry drives the 3D battery fill
+  const assets: Asset[] = useMemo(
+    () => ASSETS.map((a) => (a.bess && frame.assets[a.id]?.soc != null ? { ...a, bess: { ...a.bess, soc: frame.assets[a.id].soc as number } } : a)),
+    [frame.assets],
+  )
+  // focus = commands currently in force (live setpoints) unless the page supplies its own
+  const focus: Focus = useMemo(() => {
+    if (overlay?.focus) return overlay.focus
+    const f: Focus = {}
+    for (const [id, sp] of Object.entries(frame.live_setpoints)) {
+      if (sp > 0.5 && id !== 'RTM') f[id] = { mw: frame.assets[id]?.mw ?? 0, status: 'delivering' }
+    }
+    return f
+  }, [overlay?.focus, frame.live_setpoints, frame.assets])
 
   const labelLayer = useRef<HTMLDivElement>(null)
-  const labels = useMapLabels(layers, net.injections, overlay?.focus ?? {}, assets)
-
+  const labels = useMapLabels(layers, frame.injections, focus)
   const stress = useMemo(() => {
     const out: Record<string, number> = {}
     for (const l of LINES) {
@@ -53,7 +64,7 @@ export function KarnatakaMap({ overlay, className, compact }: { overlay?: MapOve
   }, [loading])
 
   return (
-    <div className={cn('relative h-full min-h-[320px] w-full overflow-hidden rounded-xl border bg-[#f1f5fb]', className)}>
+    <div className={cn('relative h-full min-h-[280px] w-full overflow-hidden rounded-xl border bg-[#f1f5fb]', className)}>
       <Canvas flat camera={{ position: [0.4, 11.2, 8.8], fov: 42, near: 0.05, far: 200 }} dpr={[1, 2]} gl={{ antialias: true }}>
         <color attach="background" args={['#f1f5fb']} />
         <fog attach="fog" args={['#f1f5fb', 16, 34]} />
@@ -74,11 +85,13 @@ export function KarnatakaMap({ overlay, className, compact }: { overlay?: MapOve
             infiniteGrid
           />
           <StateShape />
-          {layers.heat && <HeatLayer busLoad={snapshot.busLoad} stress={stress} />}
-          {layers.grid && <GridLines flows={flows} loading={loading} outaged={snapshot.outagedLines} showFlows={layers.flows} highlight={overlay?.highlightLines} />}
+          {layers.heat && <HeatLayer busLoad={frame.bus_load} stress={stress} />}
+          {layers.grid && <GridLines flows={frame.flows} loading={loading} outaged={frame.outaged} showFlows={layers.flows} highlight={overlay?.highlightLines} />}
           {layers.grid && <Substations stress={stress} />}
-          {layers.generation && <Generators output={snapshot.genOutput} focus={overlay?.focus ?? {}} />}
-          <FlexAssets assets={assets} focus={overlay?.focus ?? {}} layers={layers} />
+          {layers.ch220 && <LoadChannels channels={frame.channels} />}
+          {layers.genStations && <GenStations channels={frame.channels} />}
+          {layers.generation && <Generators output={frame.gen_output} focus={focus} />}
+          <FlexAssets assets={assets} focus={focus} layers={layers} />
           {layers.ties && <TieArrows />}
           <SldcBeacon />
           {overlay?.wave && <CommandWave targets={overlay.wave.targets} phase={overlay.wave.phase} />}
@@ -88,14 +101,14 @@ export function KarnatakaMap({ overlay, className, compact }: { overlay?: MapOve
       </Canvas>
       <LabelLayer labels={labels} layer={labelLayer} />
       <MapToolbar compact={compact} />
-      <HoverCard flows={flows} loading={loading} />
-      {!compact && <Legend />}
+      <HoverCard frame={frame} loading={loading} />
+      {!compact && <Legend frame={frame} />}
       {overlay?.caption && (
         <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white/90 px-3 py-1 text-xs text-slate-700 shadow-sm ring-1 ring-slate-900/10">
           {overlay.caption}
         </div>
       )}
-      <Inspector flows={flows} loading={loading} />
+      <Inspector frame={frame} loading={loading} />
     </div>
   )
 }
@@ -103,15 +116,17 @@ export function KarnatakaMap({ overlay, className, compact }: { overlay?: MapOve
 const CAMS: { id: CameraPreset; label: string }[] = [
   { id: 'STATE', label: 'State' },
   { id: 'BENGALURU', label: 'Bengaluru' },
-  { id: 'NORTH', label: 'North KA' },
-  { id: 'COAST', label: 'Coast & Ghats' },
-  { id: 'TILT', label: '3D tilt' },
+  { id: 'NORTH', label: 'North' },
+  { id: 'COAST', label: 'Coast' },
+  { id: 'TILT', label: '3D' },
 ]
 
 const LAYER_DEFS: { k: keyof MapLayers; label: string; icon: typeof Zap }[] = [
-  { k: 'grid', label: 'Transmission grid', icon: Zap },
+  { k: 'grid', label: '400/765 kV grid', icon: Zap },
   { k: 'flows', label: 'Animated power flow', icon: Waves },
-  { k: 'generation', label: 'Generation', icon: Mountain },
+  { k: 'ch220', label: '220 kV load channels (all DISCOMs)', icon: Cable },
+  { k: 'genStations', label: 'Generating stations', icon: Diamond },
+  { k: 'generation', label: 'Generation complexes', icon: Mountain },
   { k: 'dr', label: 'DR fleets', icon: Factory },
   { k: 'bess', label: 'BESS', icon: Battery },
   { k: 'ties', label: 'ISTS tie points', icon: RadioTower },
@@ -120,20 +135,20 @@ const LAYER_DEFS: { k: keyof MapLayers; label: string; icon: typeof Zap }[] = [
 ]
 
 function MapToolbar({ compact }: { compact?: boolean }) {
-  const cam = useUIStore((s) => s.camera)
-  const setCamera = useUIStore((s) => s.setCamera)
-  const layers = useUIStore((s) => s.layers)
-  const toggle = useUIStore((s) => s.toggleLayer)
+  const cam = useUI((s) => s.camera)
+  const setCamera = useUI((s) => s.setCamera)
+  const layers = useUI((s) => s.layers)
+  const toggle = useUI((s) => s.toggleLayer)
   return (
-    <div className="absolute top-3 left-3 flex flex-col gap-2">
-      <div className="flex flex-wrap gap-1 rounded-lg bg-white/90 p-1 ring-1 ring-slate-900/10 backdrop-blur">
-        <MapIcon className="mx-1 size-4 self-center text-sky-600" />
-        {CAMS.filter((c) => !compact || c.id !== 'COAST').map((c) => (
+    <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
+      <div className="flex flex-wrap gap-0.5 rounded-lg bg-white/90 p-1 shadow-sm ring-1 ring-slate-900/10 backdrop-blur">
+        <MapIcon className="mx-1 size-3.5 self-center text-sky-600" />
+        {CAMS.map((c) => (
           <button
             key={c.id}
             onClick={() => setCamera(c.id)}
             className={cn(
-              'rounded-md px-2 py-1 text-[11px] font-medium text-slate-700 transition hover:bg-slate-900/5',
+              'rounded-md px-1.5 py-0.5 text-[11px] font-medium text-slate-600 transition hover:bg-slate-900/5',
               cam === c.id && 'bg-sky-100 text-sky-700 ring-1 ring-sky-300',
             )}
           >
@@ -141,13 +156,13 @@ function MapToolbar({ compact }: { compact?: boolean }) {
           </button>
         ))}
       </div>
-      <div className="flex gap-1 rounded-lg bg-white/90 p-1 ring-1 ring-slate-900/10 backdrop-blur">
+      <div className={cn('flex gap-0.5 rounded-lg bg-white/90 p-1 shadow-sm ring-1 ring-slate-900/10 backdrop-blur', compact && 'flex-wrap')}>
         {LAYER_DEFS.map(({ k, label, icon: Icon }) => (
           <Tooltip key={k}>
             <TooltipTrigger asChild>
               <button
                 onClick={() => toggle(k)}
-                className={cn('rounded-md p-1.5 text-slate-500 transition hover:bg-slate-900/5', layers[k] && 'bg-sky-100 text-sky-700')}
+                className={cn('rounded-md p-1 text-slate-400 transition hover:bg-slate-900/5', layers[k] && 'bg-sky-100 text-sky-700')}
                 aria-label={label}
               >
                 <Icon className="size-3.5" />
@@ -161,10 +176,10 @@ function MapToolbar({ compact }: { compact?: boolean }) {
   )
 }
 
-function Legend() {
+function Legend({ frame }: { frame: Frame }) {
+  const live = Object.values(frame.channels).filter((c) => c.src === 'KPTCL').length
   return (
-    <div className="pointer-events-none absolute bottom-3 left-3 rounded-lg bg-white/90 p-2 text-[10px] text-slate-700 ring-1 ring-slate-900/10 backdrop-blur">
-      <div className="mb-1 font-semibold text-slate-800">Line loading</div>
+    <div className="pointer-events-none absolute bottom-2.5 left-2.5 rounded-lg bg-white/90 p-2 text-[10px] text-slate-600 shadow-sm ring-1 ring-slate-900/10 backdrop-blur">
       <div className="flex gap-2">
         {[
           ['<75%', 0.5],
@@ -173,67 +188,73 @@ function Legend() {
           ['>100%', 1.1],
         ].map(([l, v]) => (
           <span key={l as string} className="flex items-center gap-1">
-            <span className="h-1 w-4 rounded" style={{ background: loadingColor(v as number) }} />
+            <span className="h-1 w-3.5 rounded" style={{ background: loadingColor(v as number) }} />
             {l}
           </span>
         ))}
-        <span className="flex items-center gap-1">
-          <span className="h-1 w-4 rounded bg-violet-400" /> HVDC
-        </span>
       </div>
-      <div className="mt-1.5 mb-1 font-semibold text-slate-800">Flexibility</div>
-      <div className="flex flex-wrap gap-2">
-        {Object.entries(ASSET_TYPE_META)
-          .filter(([k]) => k !== 'generation')
-          .map(([k, m]) => (
+      <div className="mt-1 flex flex-wrap gap-2">
+        {Object.entries(DISCOM_COLORS)
+          .filter(([k]) => !['KPCL', 'IPP'].includes(k))
+          .map(([k, c]) => (
             <span key={k} className="flex items-center gap-1">
-              <span className="size-2 rounded-sm" style={{ background: m.color }} />
-              {m.label}
+              <span className="size-2 rounded-sm" style={{ background: c }} />
+              {k}
             </span>
           ))}
+      </div>
+      <div className="mt-1 flex items-center gap-2">
+        <span className="flex items-center gap-1">
+          <span className="size-2 rounded-full bg-emerald-500" /> live KPTCL ({live})
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="size-2 rounded-full bg-slate-300" /> simulated
+        </span>
       </div>
     </div>
   )
 }
 
-function describe(sel: NonNullable<Selection>, flows: Record<string, number>, loading: Record<string, number>) {
-  const snap = useGridStore.getState().snapshot
-  const assets = useGridStore.getState().assets
+function describe(sel: NonNullable<Selection>, frame: Frame, loading: Record<string, number>) {
   if (sel.kind === 'bus') {
     const b = BUS_BY_ID[sel.id]
     const conn = LINES.filter((l) => l.from === b.id || l.to === b.id)
     const worst = conn.reduce((m, l) => Math.max(m, loading[l.id] ?? 0), 0)
-    const dr = assets.filter((a) => a.bus === b.id && a.type !== 'generation').reduce((s, a) => s + a.reserve.state, 0)
+    const ch = LOAD_CHANNELS.filter((c) => c.parent_bus === b.id)
     return {
       title: b.name,
-      sub: `${b.discom ?? 'ISTS'} · ${b.kv} kV`,
+      sub: `${b.discom ?? 'ISTS'} · ${b.kv} kV · ${ch.length} × 220 kV channels`,
       rows: [
-        ['Load', fmtMW(snap.busLoad[b.id] ?? 0)],
+        ['Load', fmtMW(frame.bus_load[b.id] ?? 0)],
         ['Worst connected line', `${(worst * 100).toFixed(0)}%`],
-        ['State DR available', fmtMW(dr)],
-        ['Connected lines', String(conn.length)],
+        [
+          '220 kV channels',
+          ch
+            .map((c) => c.name.split(' ')[0])
+            .slice(0, 4)
+            .join(', ') + (ch.length > 4 ? '…' : ''),
+        ],
       ],
     }
   }
   if (sel.kind === 'line') {
     const l = LINES.find((x) => x.id === sel.id)!
-    const out = snap.outagedLines.includes(l.id)
     return {
       title: lineLabel(l.id),
       sub: `${l.kv} kV${l.hvdc ? ' HVDC' : ''} · limit ${fmtMW(l.limitMW)}`,
       rows: [
-        ['Status', out ? 'OUTAGE' : 'In service'],
-        ['Flow', `${fmtMW(Math.abs(flows[l.id] ?? 0))} ${(flows[l.id] ?? 0) >= 0 ? `→ ${BUS_BY_ID[l.to].name.split(' ')[0]}` : `→ ${BUS_BY_ID[l.from].name.split(' ')[0]}`}`],
+        ['Status', frame.outaged.includes(l.id) ? 'OUTAGE' : 'In service'],
+        ['Flow', fmtMW(Math.abs(frame.flows[l.id] ?? 0))],
         ['Loading', `${((loading[l.id] ?? 0) * 100).toFixed(0)}%`],
       ],
     }
   }
   if (sel.kind === 'gen') {
     const g = GENERATORS.find((x) => x.id === sel.id)!
-    const mw = snap.genOutput[g.id] ?? 0
+    const mw = frame.gen_output[g.id] ?? 0
     return {
       title: g.name,
-      sub: `${g.type.toUpperCase()} · ${g.owner}`,
+      sub: `${g.type} · ${g.owner}`,
       rows: [
         ['Output', fmtMW(mw)],
         ['Capacity', fmtMW(g.capacityMW)],
@@ -241,52 +262,73 @@ function describe(sel: NonNullable<Selection>, flows: Record<string, number>, lo
       ],
     }
   }
-  const a = assets.find((x) => x.id === sel.id) ?? ASSET_BY_ID[sel.id]
-  const lost = snap.heartbeatLost.includes(a.id)
+  if (sel.kind === 'channel') {
+    const c = LOAD_CHANNELS.find((x) => x.id === sel.id)!
+    const v = frame.channels[c.id]
+    return {
+      title: `${c.name} 220 kV`,
+      sub: `${c.discom} · parent bus ${BUS_BY_ID[c.parent_bus]?.name.split(' ')[0]}`,
+      rows: [
+        ['Load', v ? fmtMW(v.mw, 1) : '—'],
+        ['Source', v?.src === 'KPTCL' ? 'KPTCL SLDC (live)' : 'Simulated (KPTCL page not reachable)'],
+      ],
+    }
+  }
+  if (sel.kind === 'station') {
+    const g = GEN_STATIONS.find((x) => x.id === sel.id)!
+    const v = frame.channels[g.id]
+    return {
+      title: g.name,
+      sub: `${g.type} · ${g.owner} · ${g.capacityMW} MW`,
+      rows: [
+        ['Generation', v ? fmtMW(v.mw, 1) : '—'],
+        ['Source', v?.src === 'KPTCL' ? 'KPTCL StateGen (live)' : 'Simulated'],
+      ],
+    }
+  }
+  const a = ASSETS.find((x) => x.id === sel.id)!
+  const st = frame.assets[a.id]
+  const sp = frame.live_setpoints[a.id] ?? 0
   return {
     title: a.name,
     sub: `${ASSET_TYPE_META[a.type].label} · ${a.discom} · ${a.protocol}`,
     rows: [
-      [a.type === 'bess' ? 'Power / Energy' : 'Baseline load', a.type === 'bess' ? `${a.maxLoadMW} MW / ${a.bess!.energyMWh} MWh` : fmtMW(a.baselineMW)],
-      ...(a.bess ? [['State of charge', `${(a.bess.soc * 100).toFixed(0)}%`]] : []),
+      ['Delivering', fmtMW(st?.mw ?? 0)],
+      ['Setpoint', sp > 0 ? fmtMW(sp) : 'none'],
+      ...(st?.soc != null ? [['State of charge', `${(st.soc * 100).toFixed(0)}%`]] : []),
       ['State DR share', fmtMW(a.reserve.state)],
-      ['SRAS / TRAS locked', fmtMW(a.reserve.sras + a.reserve.tras)],
-      ['Response / Max duration', `${a.responseMin} min / ${a.maxDurationMin} min`],
-      ['Bid', `₹${a.bidRs.toFixed(2)}/kWh`],
-      ['Reliability', `${(a.reliability * 100).toFixed(0)}%`],
-      ['Heartbeat', lost ? 'LOST' : 'OK'],
+      ['Heartbeat', (st?.hb_age ?? 0) > 60 ? `LOST (${st?.hb_age}s)` : 'OK'],
     ],
   }
 }
 
-function HoverCard({ flows, loading }: { flows: Record<string, number>; loading: Record<string, number> }) {
-  const hovered = useUIStore((s) => s.hovered)
-  const selection = useUIStore((s) => s.selection)
+function HoverCard({ frame, loading }: { frame: Frame; loading: Record<string, number> }) {
+  const hovered = useUI((s) => s.hovered)
+  const selection = useUI((s) => s.selection)
   if (!hovered || (selection && selection.kind === hovered.kind && selection.id === hovered.id)) return null
-  const d = describe(hovered, flows, loading)
+  const d = describe(hovered, frame, loading)
   return (
-    <div className="pointer-events-none absolute top-3 right-3 w-60 rounded-lg bg-white/90 p-2.5 text-xs ring-1 ring-slate-900/10 backdrop-blur">
+    <div className="pointer-events-none absolute top-2.5 right-2.5 w-60 rounded-lg bg-white/95 p-2.5 text-xs shadow ring-1 ring-slate-900/10 backdrop-blur">
       <div className="font-semibold text-slate-800">{d.title}</div>
       <div className="mb-1.5 text-[10px] text-slate-500">{d.sub}</div>
-      {d.rows.slice(0, 4).map(([k, v]) => (
-        <div key={k} className="flex justify-between gap-2 py-0.5 text-slate-700">
+      {d.rows.map(([k, v]) => (
+        <div key={k} className="flex justify-between gap-2 py-0.5">
           <span className="text-slate-500">{k}</span>
-          <span className="font-medium tabular-nums">{v}</span>
+          <span className="truncate font-medium tabular-nums">{v}</span>
         </div>
       ))}
-      <div className="mt-1 text-[10px] text-sky-600">Click for details</div>
     </div>
   )
 }
 
-function Inspector({ flows, loading }: { flows: Record<string, number>; loading: Record<string, number> }) {
-  const selection = useUIStore((s) => s.selection)
-  const select = useUIStore((s) => s.select)
+function Inspector({ frame, loading }: { frame: Frame; loading: Record<string, number> }) {
+  const selection = useUI((s) => s.selection)
+  const select = useUI((s) => s.select)
   if (!selection) return null
-  const d = describe(selection, flows, loading)
-  const lost = d.rows.some(([k, v]) => k === 'Heartbeat' && v === 'LOST') || d.rows.some(([k, v]) => k === 'Status' && v === 'OUTAGE')
+  const d = describe(selection, frame, loading)
+  const bad = d.rows.some(([, v]) => String(v).startsWith('LOST') || v === 'OUTAGE')
   return (
-    <div className="absolute top-3 right-3 w-72 rounded-xl bg-white/90 p-3 text-xs ring-1 ring-sky-400/30 backdrop-blur">
+    <div className="absolute top-2.5 right-2.5 w-72 rounded-xl bg-white/95 p-3 text-xs shadow-md ring-1 ring-sky-300 backdrop-blur">
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="text-sm font-semibold text-slate-800">{d.title}</div>
@@ -296,16 +338,16 @@ function Inspector({ flows, loading }: { flows: Record<string, number>; loading:
           <X className="size-3.5" />
         </Button>
       </div>
-      {lost && (
+      {bad && (
         <Badge variant="destructive" className="mt-2">
           Attention required
         </Badge>
       )}
-      <div className="mt-2 divide-y divide-slate-200">
+      <div className="mt-2 divide-y divide-slate-100">
         {d.rows.map(([k, v]) => (
-          <div key={k} className="flex justify-between gap-2 py-1 text-slate-700">
+          <div key={k} className="flex justify-between gap-2 py-1">
             <span className="text-slate-500">{k}</span>
-            <span className={cn('font-medium tabular-nums', (v === 'LOST' || v === 'OUTAGE') && 'text-red-500')}>{v}</span>
+            <span className="font-medium tabular-nums">{v}</span>
           </div>
         ))}
       </div>
@@ -313,8 +355,7 @@ function Inspector({ flows, loading }: { flows: Record<string, number>; loading:
   )
 }
 
-/** Screen-space labels: major substations, ISTS ties, SLDC and dispatch MW tags. */
-function useMapLabels(layers: MapLayers, injections: Record<string, number>, focus: Focus, assets: FlexAsset[]): MapLabel[] {
+function useMapLabels(layers: MapLayers, injections: Record<string, number>, focus: Focus): MapLabel[] {
   return useMemo(() => {
     const out: MapLabel[] = []
     const at = (lon: number, lat: number, y: number): [number, number, number] => {
@@ -354,7 +395,7 @@ function useMapLabels(layers: MapLayers, injections: Record<string, number>, foc
       priority: 5,
     })
     for (const [id, f] of Object.entries(focus)) {
-      const a = assets.find((x) => x.id === id)
+      const a = ASSETS.find((x) => x.id === id)
       if (!a || a.type === 'generation') continue
       const supply = a.type === 'bess'
       out.push({
@@ -369,5 +410,5 @@ function useMapLabels(layers: MapLayers, injections: Record<string, number>, foc
       })
     }
     return out
-  }, [layers, injections, focus, assets])
+  }, [layers, injections, focus])
 }

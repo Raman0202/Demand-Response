@@ -3,6 +3,8 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
+const API = process.env.KSFP_API ?? 'http://127.0.0.1:8000'
+
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
@@ -16,6 +18,13 @@ export default defineConfig({
           ],
         },
       },
+    },
+  },
+  server: {
+    proxy: {
+      '/api': API,
+      '/ws': { target: API.replace(/^http/, 'ws'), ws: true },
+      '/health': API,
     },
   },
   resolve: {

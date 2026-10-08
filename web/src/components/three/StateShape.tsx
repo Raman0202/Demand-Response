@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import * as THREE from 'three'
 import { Line } from '@react-three/drei'
-import { BUSES, KARNATAKA_BOUNDARY } from '@/data/karnataka'
+import { BUSES, KARNATAKA_BOUNDARY } from '@/data/topology'
 import { project, shapeXY, STATE_TOP } from '@/lib/geo'
 
 /** Extruded Karnataka landmass with a glowing border and a terrain-like gradient. */

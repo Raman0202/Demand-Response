@@ -1,22 +1,66 @@
-# Production-like:  docker compose up --build            → http://localhost:8080
-# Dev (hot reload): docker compose --profile dev up      → http://localhost:5173
+# Full stack:        docker compose up --build                  → http://localhost:8080
+# With TimescaleDB:  docker compose --profile db up --build     (set KSFP_DATABASE_URL, see README)
+# Frontend hot reload against the API container:
+#                    docker compose --profile dev up            → http://localhost:5173
 services:
+  api:
+    build:
+      context: ./backend
+    image: ksfp-api:latest
+    environment:
+      KSFP_DATABASE_URL: ${KSFP_DATABASE_URL:-sqlite+aiosqlite:////app/data/ksfp.db}
+      KSFP_JWT_SECRET: ${KSFP_JWT_SECRET:-change-me-in-production}
+      KSFP_SOURCE: ${KSFP_SOURCE:-simulated} # simulated | hybrid (polls kptclsldc.in)
+      KSFP_TIME_SCALE: ${KSFP_TIME_SCALE:-20}
+      KSFP_DEMO_USERS: ${KSFP_DEMO_USERS:-1}
+    volumes:
+      - api-data:/app/data
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
   web:
     build:
       context: ./web
       target: runtime
     image: ksfp-web:latest
+    depends_on:
+      - api
     ports:
       - "8080:8080"
     restart: unless-stopped
+
+  db:
+    profiles: ["db"]
+    image: timescale/timescaledb:latest-pg16
+    environment:
+      POSTGRES_USER: ksfp
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ksfp}
+      POSTGRES_DB: ksfp
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ksfp"]
+      interval: 10s
+      retries: 5
 
   web-dev:
     profiles: ["dev"]
     build:
       context: ./web
       target: dev
+    environment:
+      KSFP_API: http://api:8000
+    depends_on:
+      - api
     ports:
       - "5173:5173"
     volumes:
       - ./web:/app
       - /app/node_modules
+
+volumes:
+  api-data:
+  db-data:

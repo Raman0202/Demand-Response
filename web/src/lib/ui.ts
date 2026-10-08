@@ -1,4 +1,4 @@
-import type { Severity } from '@/engine/types'
+import type { Severity } from '@/data/types'
 
 export const SEVERITY_STYLE: Record<Severity, string> = {
   NORMAL: 'bg-emerald-50 text-emerald-700 ring-emerald-300/70',

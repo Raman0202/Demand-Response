@@ -1,0 +1,224 @@
+// Reports & Audit — settled outcomes (M&V) and the tamper-evident audit trail.
+import { useState } from 'react'
+import { FileCheck2, ShieldCheck, ShieldX } from 'lucide-react'
+import { FitPager, SectionTabs } from '@/components/common'
+import { Empty, PageHeader, Panel, Stat, StatStrip } from '@/components/page'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { ASSET_BY_ID } from '@/data/topology'
+import { useApi } from '@/hooks'
+import { api } from '@/lib/api'
+import { fmtRs } from '@/lib/geo'
+import { clockS } from '@/store/useLive'
+import { useUI } from '@/store/useUI'
+
+interface Summary {
+  decisions: number
+  avoided_dsm_rs: number
+  payments_rs: number
+  net_benefit_rs: number
+  delivered_mwh: number
+  expected_mwh: number
+  forecast_accuracy: { mape_1block_pct: number | null; samples: number } | null
+  items: { id: string; state: string; severity: string; opened_at: number; closed_at: number | null; headline: string | null; settlement: Record<string, number> }[]
+  reliability: Record<string, number>
+}
+interface AuditEntry {
+  seq: number
+  ts: number
+  kind: string
+  actor: string
+  ref: string | null
+  message: string
+  hash: string
+}
+
+export function ReportsPage() {
+  const { data: s } = useApi<Summary>('/reports/summary', { intervalMs: 10000 })
+  const [verify, setVerify] = useState<{ ok: boolean; checked: number; broken_at: number | null; reason?: string } | null>(null)
+  const perf = s && s.expected_mwh > 0 ? s.delivered_mwh / s.expected_mwh : null
+  return (
+    <div className="flex h-full flex-col gap-3">
+      <PageHeader
+        icon={<FileCheck2 className="size-4" />}
+        title="Reports & Audit"
+        actions={
+          <Button size="sm" variant="outline" onClick={async () => setVerify(await api('/audit/verify'))}>
+            <ShieldCheck className="size-4" /> Verify audit chain
+          </Button>
+        }
+      />
+      <StatStrip>
+        <Stat label="Settled decisions" value={String(s?.decisions ?? 0)} />
+        <Stat label="Avoided DSM" value={fmtRs(s?.avoided_dsm_rs ?? 0)} tone="good" />
+        <Stat label="Payments to resources" value={fmtRs(s?.payments_rs ?? 0)} />
+        <Stat label="Net benefit" value={fmtRs(s?.net_benefit_rs ?? 0)} tone={(s?.net_benefit_rs ?? 0) >= 0 ? 'good' : 'bad'} />
+        <Stat
+          label="Delivered / expected"
+          value={perf == null ? '—' : `${s!.delivered_mwh.toFixed(1)} / ${s!.expected_mwh.toFixed(1)} MWh (${(perf * 100).toFixed(0)}%)`}
+          tone={perf != null && perf < 0.85 ? 'warn' : undefined}
+        />
+        <Stat label="Forecast MAPE (1 block)" value={s?.forecast_accuracy?.mape_1block_pct != null ? `${s.forecast_accuracy.mape_1block_pct}%` : '—'} />
+      </StatStrip>
+      {verify && (
+        <div
+          className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-1.5 text-xs ${verify.ok ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}
+        >
+          {verify.ok ? <ShieldCheck className="size-4" /> : <ShieldX className="size-4" />}
+          {verify.ok ? `Audit chain intact — ${verify.checked} entries verified (SHA-256 hash chain).` : `Audit chain BROKEN at entry #${verify.broken_at}: ${verify.reason}`}
+        </div>
+      )}
+      <Panel className="flex-1" bodyClass="flex flex-col">
+        <SectionTabs
+          sections={[
+            { id: 'outcomes', label: 'Decision outcomes', content: <Outcomes s={s ?? undefined} /> },
+            { id: 'reliability', label: 'Learned reliability', content: <Reliability rel={s?.reliability ?? {}} /> },
+            { id: 'audit', label: 'Audit trail', content: <Audit /> },
+          ]}
+        />
+      </Panel>
+    </div>
+  )
+}
+
+function Outcomes({ s }: { s?: Summary }) {
+  const go = useUI((x) => x.go)
+  if (!s?.items.length) return <Empty>No decisions have been settled yet.</Empty>
+  return (
+    <FitPager
+      items={s.items}
+      rowHeight={37}
+      reserve={60}
+      render={(slice) => (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Decision</TableHead>
+              <TableHead>Headline</TableHead>
+              <TableHead>Closed</TableHead>
+              <TableHead className="text-right">Delivered</TableHead>
+              <TableHead className="text-right">Avoided DSM</TableHead>
+              <TableHead className="text-right">Payments</TableHead>
+              <TableHead className="text-right">Net benefit</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {slice.map((d) => (
+              <TableRow key={d.id} className="cursor-pointer" onClick={() => go('decisions', d.id)}>
+                <TableCell className="font-mono text-[11px]">
+                  {d.id} <Badge variant="outline">{d.state}</Badge>
+                </TableCell>
+                <TableCell className="max-w-[320px] truncate text-xs">{d.headline}</TableCell>
+                <TableCell className="font-mono text-[11px]">{d.closed_at ? clockS(d.closed_at) : '—'}</TableCell>
+                <TableCell className="text-right font-mono text-[11px]">{(d.settlement.delivered_mwh ?? 0).toFixed(1)} MWh</TableCell>
+                <TableCell className="text-right font-mono text-[11px]">{fmtRs(d.settlement.avoided_dsm_rs ?? 0)}</TableCell>
+                <TableCell className="text-right font-mono text-[11px]">{fmtRs(d.settlement.payments_rs ?? 0)}</TableCell>
+                <TableCell className={`text-right font-mono text-[11px] font-semibold ${(d.settlement.net_benefit_rs ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                  {fmtRs(d.settlement.net_benefit_rs ?? 0)}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    />
+  )
+}
+
+function Reliability({ rel }: { rel: Record<string, number> }) {
+  const rows = Object.entries(rel).sort((a, b) => a[1] - b[1])
+  if (!rows.length) return <Empty>No delivery measurements yet.</Empty>
+  return (
+    <div className="grid grid-cols-3 gap-x-6 gap-y-1.5">
+      {rows.slice(0, 36).map(([id, v]) => (
+        <div key={id} className="flex items-center gap-2 text-xs">
+          <span className="w-40 truncate">{ASSET_BY_ID[id]?.short ?? id}</span>
+          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+            <div className={`h-full rounded-full ${v >= 0.9 ? 'bg-emerald-400' : v >= 0.75 ? 'bg-amber-400' : 'bg-rose-400'}`} style={{ width: `${v * 100}%` }} />
+          </div>
+          <span className="w-9 text-right font-mono text-[11px]">{(v * 100).toFixed(0)}%</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+const KINDS = ['ALL', 'EVENT', 'ANALYSIS', 'APPROVAL', 'COMMAND', 'ACK', 'SETTLEMENT', 'ALARM', 'OVERRIDE', 'CONFIG', 'SECURITY', 'SYSTEM']
+
+function Audit() {
+  const [kind, setKind] = useState('ALL')
+  const [page, setPage] = useState(0)
+  const size = 14
+  const { data } = useApi<{ items: AuditEntry[]; total: number }>(`/audit?limit=${size}&offset=${page * size}${kind !== 'ALL' ? `&kind=${kind}` : ''}`, { intervalMs: 5000 })
+  const pages = Math.max(1, Math.ceil((data?.total ?? 0) / size))
+  return (
+    <div className="flex h-full flex-col gap-2">
+      <div className="flex shrink-0 items-center gap-2">
+        <Select
+          value={kind}
+          onValueChange={(v) => {
+            setKind(v)
+            setPage(0)
+          }}
+        >
+          <SelectTrigger size="sm" className="w-40">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {KINDS.map((k) => (
+              <SelectItem key={k} value={k}>
+                {k === 'ALL' ? 'All entry kinds' : k}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <span className="text-[11px] text-slate-500">{data?.total ?? 0} entries</span>
+        <div className="ml-auto flex items-center gap-1 text-[11px]">
+          <Button size="sm" variant="ghost" className="h-6" disabled={page === 0} onClick={() => setPage(page - 1)}>
+            Newer
+          </Button>
+          <span className="font-mono">
+            {page + 1}/{pages}
+          </span>
+          <Button size="sm" variant="ghost" className="h-6" disabled={page >= pages - 1} onClick={() => setPage(page + 1)}>
+            Older
+          </Button>
+        </div>
+      </div>
+      <div className="min-h-0 flex-1 overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>#</TableHead>
+              <TableHead>Time</TableHead>
+              <TableHead>Kind</TableHead>
+              <TableHead>Actor</TableHead>
+              <TableHead>Message</TableHead>
+              <TableHead>Hash</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {(data?.items ?? []).map((e) => (
+              <TableRow key={e.seq}>
+                <TableCell className="font-mono text-[10px] text-slate-500">{e.seq}</TableCell>
+                <TableCell className="font-mono text-[11px]">{clockS(e.ts)}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className="text-[10px]">
+                    {e.kind}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-[11px]">{e.actor}</TableCell>
+                <TableCell className="max-w-[560px] truncate text-xs" title={e.message}>
+                  {e.message}
+                </TableCell>
+                <TableCell className="font-mono text-[10px] text-slate-400">{e.hash.slice(0, 10)}…</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  )
+}

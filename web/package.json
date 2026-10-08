@@ -8,8 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test": "vitest run",
-    "scenarios": "tsx --tsconfig tsconfig.app.json scripts/presets.ts"
+    "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.9",

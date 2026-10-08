@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 import { useFrame } from '@react-three/fiber'
 import { Line } from '@react-three/drei'
-import { BUS_BY_ID, LINES } from '@/data/karnataka'
+import { BUS_BY_ID, LINES } from '@/data/topology'
 import { loadingColor, project, STATE_TOP } from '@/lib/geo'
-import { useUIStore } from '@/store/useUIStore'
+import { useUI as useUIStore } from '@/store/useUI'
 
 const LINE_Y = STATE_TOP + 0.05
 
