@@ -1,8 +1,8 @@
 // Reports & Audit — settled outcomes (M&V) and the tamper-evident audit trail.
 import { useState } from 'react'
-import { FileCheck2, ShieldCheck, ShieldX } from 'lucide-react'
+import { ShieldCheck, ShieldX } from 'lucide-react'
 import { FitPager, SectionTabs } from '@/components/common'
-import { Empty, PageHeader, Panel, Stat, StatStrip } from '@/components/page'
+import { Empty, Panel, Stat, StatStrip } from '@/components/page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -11,6 +11,7 @@ import { ASSET_BY_ID } from '@/data/topology'
 import { useApi } from '@/hooks'
 import { api } from '@/lib/api'
 import { fmtRs } from '@/lib/geo'
+import { cn } from '@/lib/utils'
 import { clockS } from '@/store/useLive'
 import { useUI } from '@/store/useUI'
 
@@ -41,40 +42,37 @@ export function ReportsPage() {
   const perf = s && s.expected_mwh > 0 ? s.delivered_mwh / s.expected_mwh : null
   return (
     <div className="flex h-full flex-col gap-3">
-      <PageHeader
-        icon={<FileCheck2 className="size-4" />}
-        title="Reports & Audit"
-        actions={
-          <Button size="sm" variant="outline" onClick={async () => setVerify(await api('/audit/verify'))}>
-            <ShieldCheck className="size-4" /> Verify audit chain
-          </Button>
-        }
-      />
       <StatStrip>
-        <Stat label="Settled decisions" value={String(s?.decisions ?? 0)} />
-        <Stat label="Avoided DSM" value={fmtRs(s?.avoided_dsm_rs ?? 0)} tone="good" />
-        <Stat label="Payments to resources" value={fmtRs(s?.payments_rs ?? 0)} />
-        <Stat label="Net benefit" value={fmtRs(s?.net_benefit_rs ?? 0)} tone={(s?.net_benefit_rs ?? 0) >= 0 ? 'good' : 'bad'} />
+        <Stat label="Settled DR events" value={String(s?.decisions ?? 0)} />
         <Stat
-          label="Delivered / expected"
-          value={perf == null ? '—' : `${s!.delivered_mwh.toFixed(1)} / ${s!.expected_mwh.toFixed(1)} MWh (${(perf * 100).toFixed(0)}%)`}
-          tone={perf != null && perf < 0.85 ? 'warn' : undefined}
+          label="Energy delivered vs baseline"
+          value={perf == null ? '—' : `${s!.delivered_mwh.toFixed(1)} MWh`}
+          sub={perf == null ? undefined : `${(perf * 100).toFixed(0)}% of ${s!.expected_mwh.toFixed(1)} MWh expected`}
+          tone={perf != null && perf < 0.85 ? 'warn' : 'good'}
         />
-        <Stat label="Forecast MAPE (1 block)" value={s?.forecast_accuracy?.mape_1block_pct != null ? `${s.forecast_accuracy.mape_1block_pct}%` : '—'} />
-      </StatStrip>
-      {verify && (
-        <div
-          className={`flex shrink-0 items-center gap-2 rounded-lg border px-3 py-1.5 text-xs ${verify.ok ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-rose-200 bg-rose-50 text-rose-800'}`}
+        <Stat label="Penalties avoided" value={fmtRs(s?.avoided_dsm_rs ?? 0)} tone="good" sub="DSM charges not incurred" />
+        <Stat label="Paid to participants" value={fmtRs(s?.payments_rs ?? 0)} sub="performance-adjusted" />
+        <Stat label="Net programme benefit" value={fmtRs(s?.net_benefit_rs ?? 0)} tone={(s?.net_benefit_rs ?? 0) >= 0 ? 'good' : 'bad'} />
+        <button
+          onClick={async () => setVerify(await api('/audit/verify'))}
+          className={cn(
+            'min-w-0 rounded-lg border bg-white px-2.5 py-1.5 text-left shadow-xs transition hover:bg-slate-50',
+            verify && (verify.ok ? 'border-emerald-200 bg-emerald-50/60' : 'border-rose-200 bg-rose-50'),
+          )}
         >
-          {verify.ok ? <ShieldCheck className="size-4" /> : <ShieldX className="size-4" />}
-          {verify.ok ? `Audit chain intact — ${verify.checked} entries verified (SHA-256 hash chain).` : `Audit chain BROKEN at entry #${verify.broken_at}: ${verify.reason}`}
-        </div>
-      )}
+          <div className="truncate text-[10px] text-slate-500">Audit chain (SHA-256)</div>
+          <div className={cn('flex items-center gap-1 text-[13px] font-semibold', verify ? (verify.ok ? 'text-emerald-700' : 'text-rose-600') : 'text-sky-700')}>
+            {verify ? verify.ok ? <ShieldCheck className="size-4" /> : <ShieldX className="size-4" /> : <ShieldCheck className="size-4" />}
+            {verify ? (verify.ok ? 'Intact' : `Broken at #${verify.broken_at}`) : 'Verify now'}
+          </div>
+          <div className="truncate text-[10px] text-slate-400">{verify ? `${verify.checked} entries checked` : 'click to re-hash every entry'}</div>
+        </button>
+      </StatStrip>
       <Panel className="flex-1" bodyClass="flex flex-col">
         <SectionTabs
           sections={[
-            { id: 'outcomes', label: 'Decision outcomes', content: <Outcomes s={s ?? undefined} /> },
-            { id: 'reliability', label: 'Learned reliability', content: <Reliability rel={s?.reliability ?? {}} /> },
+            { id: 'outcomes', label: 'Event settlement', content: <Outcomes s={s ?? undefined} /> },
+            { id: 'reliability', label: 'Participant reliability', content: <Reliability rel={s?.reliability ?? {}} /> },
             { id: 'audit', label: 'Audit trail', content: <Audit /> },
           ]}
         />
@@ -85,7 +83,7 @@ export function ReportsPage() {
 
 function Outcomes({ s }: { s?: Summary }) {
   const go = useUI((x) => x.go)
-  if (!s?.items.length) return <Empty>No decisions have been settled yet.</Empty>
+  if (!s?.items.length) return <Empty>No DR events settled yet — results appear here when an event closes.</Empty>
   return (
     <FitPager
       items={s.items}

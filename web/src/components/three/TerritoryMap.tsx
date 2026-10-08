@@ -27,7 +27,7 @@ export interface MapOverlay {
   caption?: string
 }
 
-export function KarnatakaMap({ overlay, className, compact }: { overlay?: MapOverlay; className?: string; compact?: boolean }) {
+export function TerritoryMap({ overlay, className, compact }: { overlay?: MapOverlay; className?: string; compact?: boolean }) {
   const frame = useLive((s) => s.frame)
   const layers = useUI((s) => s.layers)
   if (!frame) return <div className={cn('grid h-full place-items-center rounded-xl border bg-[#f1f5fb] text-sm text-muted-foreground', className)}>Waiting for live state…</div>

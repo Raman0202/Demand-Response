@@ -1,9 +1,9 @@
-// Decisions — what the system intends, is doing and has done. Approve / reject / abort with full evidence.
+// DR Events — every event the platform opened: need, dispatch, delivery vs baseline, value. Approve / reject / abort with full evidence.
 import { useState } from 'react'
-import { Bar as RBar, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts'
-import { AlertTriangle, Ban, Check, CheckCircle2, Loader2, OctagonX, Workflow, XCircle } from 'lucide-react'
+import { Area, Bar as RBar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts'
+import { AlertTriangle, Ban, Check, CheckCircle2, Loader2, OctagonX, XCircle } from 'lucide-react'
 import { Calc, FitPager, SectionTabs } from '@/components/common'
-import { Empty, PageHeader, Panel, Stat, StoryChain } from '@/components/page'
+import { Empty, Panel, Stat, StoryChain } from '@/components/page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -19,6 +19,8 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/store/useAuth'
 import { clock, clockS } from '@/store/useLive'
 import { useUI } from '@/store/useUI'
+
+const OPEN = ['AWAITING_APPROVAL', 'EXECUTING', 'RELEASING']
 
 const STATE_STYLE: Record<string, string> = {
   AWAITING_APPROVAL: 'bg-amber-100 text-amber-800',
@@ -124,6 +126,7 @@ interface Full extends DecisionSummary {
     solve_ms: number
   }[]
   outcome: Record<string, number>
+  timeline?: { t: number; target: number; dispatched: number; expected: number; delivered: number; ace: number }[]
   settlement: null | {
     rows: {
       asset_id: string
@@ -155,45 +158,72 @@ export function DecisionsPage() {
   const selected = decisionId ?? items.find((d) => ['AWAITING_APPROVAL', 'EXECUTING', 'RELEASING'].includes(d.state))?.id ?? items[0]?.id ?? null
   return (
     <div className="flex h-full flex-col gap-3">
-      <PageHeader icon={<Workflow className="size-4" />} title="Decisions" />
       <div className="grid min-h-0 flex-1 grid-cols-[300px_minmax(0,1fr)] gap-3">
-        <Panel title="Decision log" bodyClass="p-1.5">
+        <Panel
+          title="DR events"
+          aside={
+            <span className="text-[11px] text-slate-500">
+              {items.filter((d) => OPEN.includes(d.state)).length} open · {items.length} total
+            </span>
+          }
+          bodyClass="p-1.5"
+        >
           {items.length === 0 ? (
-            <Empty>No decisions yet. The platform opens one automatically when ACE stays beyond ±100 MW.</Empty>
+            <Empty>No DR events yet. The platform opens one automatically when the grid need stays above 100 MW for a minute.</Empty>
           ) : (
             <FitPager
               items={items}
-              rowHeight={62}
+              rowHeight={76}
               reserve={36}
               render={(slice) => (
                 <div className="space-y-1">
-                  {slice.map((d) => (
-                    <button
-                      key={d.id}
-                      onClick={() => go('decisions', d.id)}
-                      className={cn(
-                        'w-full rounded-lg border px-2.5 py-1.5 text-left transition hover:bg-slate-50',
-                        selected === d.id && 'border-sky-300 bg-sky-50/70 ring-1 ring-sky-200',
-                      )}
-                    >
-                      <div className="flex items-center gap-1.5">
-                        <span className={cn('rounded px-1.5 text-[9px] font-bold', STATE_STYLE[d.state] ?? 'bg-slate-100')}>{d.state.replace('_', ' ')}</span>
-                        <span className="font-mono text-[10px] text-slate-500">{d.id}</span>
-                        <span className="ml-auto text-[10px] text-slate-400">{clock(d.opened_at)}</span>
-                      </div>
-                      <div className="mt-0.5 truncate text-[12px] font-medium text-slate-700">{d.headline || d.closed_reason}</div>
-                      <div className="text-[10px] text-slate-500">
-                        {d.severity} · rev {d.revision}
-                        {d.net_benefit_rs != null && ` · net ${fmtRs(d.net_benefit_rs)}`}
-                      </div>
-                    </button>
-                  ))}
+                  {slice.map((d) => {
+                    const pct = d.planned_mw > 0.5 ? Math.min(1, d.delivered_mw / d.planned_mw) : 0
+                    return (
+                      <button
+                        key={d.id}
+                        onClick={() => go('decisions', d.id)}
+                        className={cn(
+                          'w-full rounded-lg border px-2.5 py-1.5 text-left transition hover:bg-slate-50',
+                          selected === d.id && 'border-sky-300 bg-sky-50/70 ring-1 ring-sky-200',
+                        )}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className={cn('rounded px-1.5 text-[9px] font-bold', STATE_STYLE[d.state] ?? 'bg-slate-100')}>{d.state.replace('_', ' ')}</span>
+                          <span className="font-mono text-[10px] text-slate-500">{d.id}</span>
+                          <span className="ml-auto text-[10px] text-slate-400">{clock(d.opened_at)}</span>
+                        </div>
+                        <div className="mt-0.5 flex items-baseline gap-1.5">
+                          <span className="font-mono text-[13px] font-semibold text-slate-800">{fmtMW(d.requirement_mw)}</span>
+                          <span className="text-[10px] text-slate-500">
+                            {d.direction === 'UP' ? 'load reduction' : 'load increase'} · {d.severity}
+                          </span>
+                        </div>
+                        <div className="mt-1 flex items-center gap-2">
+                          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                            <div className={cn('h-full rounded-full', pct >= 0.85 ? 'bg-emerald-400' : 'bg-sky-400')} style={{ width: `${pct * 100}%` }} />
+                          </div>
+                          <span className="shrink-0 text-[10px] text-slate-500">
+                            {d.net_benefit_rs != null ? (
+                              <span className="text-emerald-700">net {fmtRs(d.net_benefit_rs)}</span>
+                            ) : OPEN.includes(d.state) ? (
+                              `${fmtMW(d.delivered_mw)} delivering`
+                            ) : d.closed_reason ? (
+                              'closed'
+                            ) : (
+                              ''
+                            )}
+                          </span>
+                        </div>
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             />
           )}
         </Panel>
-        {selected ? <DecisionDetail id={selected} /> : <Panel>{<Empty>Select a decision.</Empty>}</Panel>}
+        {selected ? <DecisionDetail id={selected} /> : <Panel>{<Empty>Select a DR event.</Empty>}</Panel>}
       </div>
     </div>
   )
@@ -264,19 +294,26 @@ function DecisionDetail({ id }: { id: string }) {
         )}
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] gap-3">
-        <Panel title="Decision story" bodyClass="overflow-hidden">
-          <StoryChain narrative={d.narrative} />
-        </Panel>
+      <EventKpis d={d} />
+
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-3">
+        <div className="grid min-h-0 grid-rows-[minmax(0,0.9fr)_minmax(0,1.1fr)] gap-3">
+          <Panel title="Event performance — target vs dispatched vs delivered (MW)" bodyClass="p-2">
+            <PerformanceChart d={d} />
+          </Panel>
+          <Panel title="Why — situation to outcome" bodyClass="overflow-hidden">
+            <StoryChain narrative={d.narrative} compact />
+          </Panel>
+        </div>
         <Panel bodyClass="flex flex-col">
           {cur ? (
             <SectionTabs
               sections={[
-                { id: 'plan', label: `Plan (${cur.allocations.length})`, content: <PlanTab d={d} /> },
-                { id: 'evidence', label: 'Assessment', content: <EvidenceTab d={d} /> },
-                { id: 'alts', label: 'Alternatives', content: <AltTab d={d} /> },
-                { id: 'twin', label: `Twin ${cur.twin.ok ? '✓' : '✕'}`, content: <TwinTab d={d} /> },
-                { id: 'cmds', label: `Commands (${d.commands?.length ?? 0})`, content: <CommandsTab d={d} /> },
+                { id: 'plan', label: `Participants (${cur.allocations.length})`, content: <PlanTab d={d} /> },
+                { id: 'evidence', label: 'Grid need', content: <EvidenceTab d={d} /> },
+                { id: 'alts', label: 'Options', content: <AltTab d={d} /> },
+                { id: 'twin', label: `Safety ${cur.twin.ok ? '✓' : '✕'}`, content: <TwinTab d={d} /> },
+                { id: 'cmds', label: `Dispatch (${d.commands?.length ?? 0})`, content: <CommandsTab d={d} /> },
                 { id: 'revs', label: `Revisions (${d.revisions.length})`, content: <RevisionsTab d={d} /> },
                 ...(d.settlement ? [{ id: 'settle', label: 'Settlement', content: <SettleTab d={d} /> }] : []),
               ]}
@@ -290,7 +327,7 @@ function DecisionDetail({ id }: { id: string }) {
       <Dialog open={!!dlg} onOpenChange={(o) => !o && setDlg(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{dlg === 'reject' ? 'Reject decision' : 'Abort decision and release resources'}</DialogTitle>
+            <DialogTitle>{dlg === 'reject' ? 'Reject DR event' : 'Abort DR event and release participants'}</DialogTitle>
             <DialogDescription>
               {dlg === 'reject'
                 ? 'Pending commands are cancelled; anything already executing is released. The platform will not re-propose for 30 minutes unless the situation escalates.'
@@ -647,5 +684,62 @@ function SettleTab({ d }: { d: Full }) {
         />
       </div>
     </div>
+  )
+}
+
+function EventKpis({ d }: { d: Full }) {
+  const o = d.outcome ?? {}
+  const st = d.settlement
+  const delivering = o.delivered_mw ?? d.delivered_mw
+  const expected = o.expected_mw ?? 0
+  const perf = st ? (st.expected_mwh > 0 ? st.delivered_mwh / st.expected_mwh : null) : expected > 0.5 ? delivering / expected : null
+  const mins = st ? st.duration_min : (o.minutes ?? 0)
+  return (
+    <div className="grid shrink-0 grid-cols-6 gap-2">
+      <Stat label="Target (grid need)" value={fmtMW(d.requirement_mw)} sub={d.direction === 'UP' ? 'load reduction' : 'load increase'} />
+      <Stat
+        label="Dispatched"
+        value={fmtMW(d.planned_mw)}
+        sub={`${d.auto_mw.toFixed(0)} MW auto · ${d.awaiting_mw.toFixed(0)} MW awaiting`}
+        tone={d.awaiting_mw > 0.5 ? 'warn' : undefined}
+      />
+      <Stat
+        label={st ? 'Energy delivered' : 'Delivering now'}
+        value={st ? `${st.delivered_mwh.toFixed(1)} MWh` : fmtMW(delivering)}
+        sub={st ? `of ${st.expected_mwh.toFixed(1)} MWh expected` : `of ${fmtMW(expected)} expected`}
+      />
+      <Stat
+        label="Performance vs baseline"
+        value={perf == null ? '—' : `${(perf * 100).toFixed(0)}%`}
+        tone={perf == null ? undefined : perf >= 0.85 ? 'good' : 'warn'}
+        sub="metered delivery / expected"
+      />
+      <Stat label="Duration" value={`${mins.toFixed(0)} min`} sub={d.closed_at ? `closed ${clockS(d.closed_at)}` : `since ${clockS(d.opened_at)}`} />
+      <Stat
+        label={st ? 'Net benefit' : 'Penalties avoided so far'}
+        value={fmtRs(st ? st.net_benefit_rs : (o.avoided_dsm_rs ?? 0))}
+        sub={st ? `${fmtRs(st.avoided_dsm_rs)} avoided − ${fmtRs(st.payments_rs)} paid` : 'vs doing nothing'}
+        tone="good"
+      />
+    </div>
+  )
+}
+
+function PerformanceChart({ d }: { d: Full }) {
+  const rows = (d.timeline ?? []).map((p) => ({ ...p, label: clock(p.t) }))
+  if (rows.length < 2) return <Empty icon={<Loader2 className="size-5 text-slate-300" />}>Performance curve builds up as the event runs.</Empty>
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <ComposedChart data={rows} margin={{ top: 4, right: 6, left: 0, bottom: 0 }}>
+        <CartesianGrid stroke="#eef2f7" vertical={false} />
+        <XAxis dataKey="label" tick={{ fontSize: 9, fill: '#94a3b8' }} minTickGap={36} />
+        <YAxis tick={{ fontSize: 9, fill: '#94a3b8' }} width={38} />
+        <RTooltip {...chartTooltip} formatter={(v) => `${Number(v).toFixed(0)} MW`} />
+        <Legend iconSize={8} wrapperStyle={{ fontSize: 10 }} />
+        <Area dataKey="delivered" name="Delivered" stroke="#10b981" fill="#a7f3d0" fillOpacity={0.6} isAnimationActive={false} />
+        <Line dataKey="dispatched" name="Dispatched" stroke="#0ea5e9" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+        <Line dataKey="target" name="Target" stroke="#f59e0b" strokeDasharray="5 4" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+      </ComposedChart>
+    </ResponsiveContainer>
   )
 }

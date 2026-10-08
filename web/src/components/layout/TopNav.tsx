@@ -6,7 +6,6 @@ import {
   Bot,
   ChevronDown,
   FlaskConical,
-  Gauge,
   LayoutDashboard,
   LineChart,
   LogOut,
@@ -18,7 +17,8 @@ import {
   ShieldAlert,
   Wifi,
   WifiOff,
-  Workflow,
+  Users,
+  Zap,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -34,19 +34,20 @@ import { useUI, type Page } from '@/store/useUI'
 
 const LEVELS = ['Monitor', 'Advisory', 'Supervised', 'Autonomous']
 
+// DR operator workflow: overview → events (act) → programs (capacity) → grid & forecast (context) → alarms
 const PRIMARY: { id: Page; label: string; icon: typeof LayoutDashboard }[] = [
-  { id: 'command', label: 'Command Center', icon: LayoutDashboard },
-  { id: 'operations', label: 'Operations', icon: Network },
-  { id: 'decisions', label: 'Decisions', icon: Workflow },
+  { id: 'command', label: 'Overview', icon: LayoutDashboard },
+  { id: 'decisions', label: 'DR Events', icon: Zap },
+  { id: 'resources', label: 'Programs', icon: Users },
+  { id: 'operations', label: 'Grid', icon: Network },
+  { id: 'analysis', label: 'Forecast', icon: LineChart },
   { id: 'alarms', label: 'Alarms', icon: Bell },
-  { id: 'analysis', label: 'Forecast & Analysis', icon: LineChart },
 ]
 
 const MORE: { id: Page; label: string; hint: string; icon: typeof LayoutDashboard; perm?: string }[] = [
-  { id: 'whatif', label: 'What-if sandbox', hint: 'Evaluate scenarios — no dispatch', icon: FlaskConical, perm: 'whatif' },
-  { id: 'resources', label: 'Resources', hint: 'Flexibility registry & live state', icon: Gauge },
-  { id: 'reports', label: 'Reports & Audit', hint: 'Settlement, KPIs, audit trail', icon: Receipt },
-  { id: 'admin', label: 'Administration', hint: 'Autonomy, data sources, simulator', icon: Settings2 },
+  { id: 'whatif', label: 'What-if sandbox', hint: 'Test a DR event before it happens — no dispatch', icon: FlaskConical, perm: 'whatif' },
+  { id: 'reports', label: 'Settlement & Audit', hint: 'Baseline, delivery, payments, audit trail', icon: Receipt },
+  { id: 'admin', label: 'Administration', hint: 'Autonomy policy, data sources, simulator, users', icon: Settings2 },
 ]
 
 export function TopNav() {
@@ -86,10 +87,12 @@ export function TopNav() {
   return (
     <header className="flex h-13 shrink-0 items-center gap-3 border-b bg-white/90 px-3 backdrop-blur">
       <button onClick={() => go('command')} className="flex items-center gap-2 pr-2">
-        <div className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-sky-300 to-emerald-300 text-xs font-black text-slate-800">KA</div>
-        <div className="hidden text-left leading-tight 2xl:block">
-          <div className="text-sm font-semibold">KSFP</div>
-          <div className="text-[10px] text-muted-foreground">Karnataka State Flexibility Platform</div>
+        <div className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-sky-400 to-emerald-400 text-white">
+          <Zap className="size-4" />
+        </div>
+        <div className="hidden text-left leading-tight xl:block">
+          <div className="text-sm font-semibold">Demand Response</div>
+          <div className="text-[10px] text-muted-foreground">Autonomous DR operations</div>
         </div>
       </button>
 
@@ -197,7 +200,7 @@ export function TopNav() {
               </TooltipTrigger>
               <TooltipContent>
                 Data confidence of the state estimate. Below 85% autonomy degrades to advisory automatically.
-                {f.source.kptcl && ` KPTCL SLDC: ${f.source.kptcl.ok}/${f.source.kptcl.total} pages, ${f.source.kptcl.live} live channels.`}
+                {f.source.kptcl && ` SLDC feed: ${f.source.kptcl.ok}/${f.source.kptcl.total} pages, ${f.source.kptcl.live} live channels.`}
               </TooltipContent>
             </Tooltip>
             <div className="text-right leading-tight">

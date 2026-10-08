@@ -37,7 +37,7 @@ def create_app(cfg: Settings | None = None) -> FastAPI:
         yield
         await runtime.stop()
 
-    app = FastAPI(title="KSFP — Karnataka State Flexibility Platform", version="1.0.0", lifespan=lifespan)
+    app = FastAPI(title="Demand Response Platform API", version="1.0.0", lifespan=lifespan)
     app.add_middleware(CORSMiddleware, allow_origins=[o.strip() for o in cfg.cors_origins.split(",")], allow_methods=["*"], allow_headers=["*"])
     app.include_router(router)
     app.include_router(ops)

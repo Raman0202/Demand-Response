@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Loader2, LogIn } from 'lucide-react'
+import { Loader2, LogIn, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -39,17 +39,19 @@ export function LoginPage() {
       <div className="grid w-full max-w-4xl overflow-hidden rounded-2xl border bg-white shadow-sm md:grid-cols-2">
         <div className="flex flex-col justify-between bg-gradient-to-br from-sky-100 to-emerald-100 p-8">
           <div>
-            <div className="grid size-11 place-items-center rounded-xl bg-white text-sm font-black text-slate-800 shadow-sm">KA</div>
-            <h1 className="mt-5 text-2xl font-semibold text-slate-800">Karnataka State Flexibility Platform</h1>
+            <div className="grid size-11 place-items-center rounded-xl bg-gradient-to-br from-sky-400 to-emerald-400 text-white shadow-sm">
+              <Zap className="size-5" />
+            </div>
+            <h1 className="mt-5 text-2xl font-semibold text-slate-800">Demand Response Platform</h1>
             <p className="mt-2 text-sm leading-relaxed text-slate-600">
-              Autonomous demand-response &amp; flexibility control for the KPTCL SLDC control area — continuous monitoring, forecasting, network-constrained optimisation,
-              Digital-Twin validation and supervised dispatch.
+              Run demand response end to end: detect the grid need, forecast it, pick the cheapest reliable mix of flexible loads, batteries and generation, dispatch it under
+              operator supervision, then measure delivery against baseline and settle every participant.
             </p>
           </div>
           <ul className="mt-6 space-y-1.5 text-xs text-slate-600">
-            <li>• Every decision is explained: situation → impact → prediction → recommendation → action → outcome</li>
+            <li>• Every DR event is explained: situation → impact → prediction → recommendation → action → outcome</li>
             <li>• Human-in-the-loop by policy · dual authorisation · kill switch</li>
-            <li>• Hash-chained audit of every command</li>
+            <li>• Baseline-based M&amp;V, participant settlement and a hash-chained audit trail</li>
           </ul>
         </div>
         <form onSubmit={submit} className="space-y-4 p-8">

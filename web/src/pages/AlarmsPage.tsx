@@ -1,8 +1,8 @@
 // Alarms & events — prioritised, correlated into incidents; acknowledge and shelve with reasons.
 import { useState } from 'react'
-import { Archive, Bell, Check, CheckCheck } from 'lucide-react'
+import { Archive, Check, CheckCheck } from 'lucide-react'
 import { FitPager } from '@/components/common'
-import { Empty, PageHeader, Panel, Prio, Stat, StatStrip } from '@/components/page'
+import { Empty, Panel, Prio, Stat, StatStrip } from '@/components/page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -45,17 +45,6 @@ export function AlarmsPage() {
   }
   return (
     <div className="flex h-full flex-col gap-3">
-      <PageHeader
-        icon={<Bell className="size-4" />}
-        title="Alarms & events"
-        actions={
-          can('ack_alarm') && (
-            <Button size="sm" variant="outline" onClick={() => api('/alarms/ack-all', { method: 'POST' }).then(reload)}>
-              <CheckCheck className="size-4" /> Acknowledge all
-            </Button>
-          )
-        }
-      />
       <StatStrip>
         <Stat label="Active alarms" value={String(f?.counts.alarms ?? 0)} tone={(f?.counts.alarms ?? 0) ? 'warn' : 'good'} />
         <Stat label="Critical (P1)" value={String(f?.counts.p1 ?? 0)} tone={(f?.counts.p1 ?? 0) ? 'bad' : 'good'} />
@@ -80,6 +69,13 @@ export function AlarmsPage() {
                 </TabsTrigger>
               </TabsList>
             </Tabs>
+          }
+          aside={
+            can('ack_alarm') && (
+              <Button size="sm" variant="outline" className="h-7" onClick={() => api('/alarms/ack-all', { method: 'POST' }).then(reload)}>
+                <CheckCheck className="size-3.5" /> Acknowledge all
+              </Button>
+            )
           }
           bodyClass="p-1.5"
         >

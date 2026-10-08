@@ -1,9 +1,8 @@
 // Operations — the live grid: 3D map, network constraints, resources in action, 220 kV channels, generation.
 import { useMemo, useState } from 'react'
-import { Network } from 'lucide-react'
 import { Bar, FitPager } from '@/components/common'
-import { PageHeader, Panel, Stat, StatStrip } from '@/components/page'
-import { KarnatakaMap } from '@/components/three/KarnatakaMap'
+import { Panel, Stat, StatStrip } from '@/components/page'
+import { TerritoryMap } from '@/components/three/TerritoryMap'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -18,17 +17,8 @@ export function OperationsPage() {
   const kptcl = f.source.kptcl
   return (
     <div className="flex h-full flex-col gap-3">
-      <PageHeader
-        icon={<Network className="size-4" />}
-        title="Operations"
-        actions={
-          <Badge variant={kptcl && kptcl.live ? 'success' : 'outline'} className="text-[10px]">
-            {kptcl ? `KPTCL SLDC: ${kptcl.ok}/${kptcl.total} pages · ${kptcl.live} live channels` : 'Data source: simulated field'}
-          </Badge>
-        }
-      />
       <StatStrip>
-        <Stat label="State demand" value={fmtMW(f.demand)} />
+        <Stat label="System demand" value={fmtMW(f.demand)} sub={kptcl ? `SLDC feed ${kptcl.ok}/${kptcl.total} pages · ${kptcl.live} live` : 'source: simulated field'} />
         <Stat label="In-state generation" value={fmtMW(f.state_gen)} sub={`central share ${fmtMW(f.central_gen)}`} />
         <Stat label="Renewables" value={fmtMW(f.re)} sub={`${((f.re / Math.max(1, f.demand)) * 100).toFixed(0)}% of demand`} />
         <Stat label="ISTS drawal / schedule" value={`${fmtMW(f.drawal)} / ${fmtMW(f.schedule)}`} tone={Math.abs(f.drawal - f.schedule) > 150 ? 'warn' : undefined} />
@@ -51,7 +41,7 @@ export function OperationsPage() {
         />
       </StatStrip>
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] gap-3">
-        <KarnatakaMap />
+        <TerritoryMap />
         <Panel bodyClass="flex flex-col">
           <Tabs defaultValue="network" className="flex min-h-0 flex-1 flex-col">
             <TabsList className="w-full shrink-0">

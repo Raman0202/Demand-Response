@@ -27,6 +27,8 @@ TRIGGER_MW = 100.0  # |ACE| that opens a decision (IEGC alert threshold)
 TRIGGER_HOLD_S = 60.0  # ... sustained for this long (sim seconds)
 RESOLVE_MW = 60.0  # underlying requirement below which the decision winds down
 HORIZON = 4
+TIMELINE_S = 20.0  # sim-seconds between event performance samples
+TIMELINE_MAX = 720
 
 
 def fmt_rs(v: float) -> str:
@@ -63,6 +65,7 @@ class Decision:
     active_blocks: dict[str, int] = field(default_factory=dict)
     resolved_count: int = 0
     outcome: dict = field(default_factory=dict)
+    timeline: list[dict] = field(default_factory=list)  # sampled event performance: target vs dispatched vs delivered
     settlement: dict | None = None
     closed_reason: str = ""
     final_state: str = "COMPLETED"
@@ -108,6 +111,7 @@ class Decision:
                 "current": self.current,
                 "revisions": self.revisions[-20:],
                 "outcome": self.outcome,
+                "timeline": self.timeline,
                 "settlement": self.settlement,
                 "excluded": self.excluded,
                 "awaiting": self.awaiting,
@@ -379,8 +383,8 @@ class DecisionEngine:
         s = a.state
         dirn = "short" if a.direction == "UP" else "long (surplus)"
         situation = (
-            f"Karnataka is {('over' if a.deviation_mw >= 0 else 'under')}-drawing {abs(a.deviation_mw):.0f} MW against schedule at {s.frequency:.3f} Hz; "
-            f"ACE {a.ace.ace:+.0f} MW — the state is {dirn} by {a.requirement_mw:.0f} MW ({a.severity})."
+            f"The control area is {('over' if a.deviation_mw >= 0 else 'under')}-drawing {abs(a.deviation_mw):.0f} MW against schedule at {s.frequency:.3f} Hz; "
+            f"ACE {a.ace.ace:+.0f} MW — it is {dirn} by {a.requirement_mw:.0f} MW ({a.severity})."
         )
         impact_bits = [f"DSM exposure {fmt_rs(a.dsm.amount_rs)} per 15-min block (NR ₹{a.dsm.nr.nr:.2f}/kWh, {a.dsm.freq_band} frequency band)."]
         if s.flow.max_loading >= 0.9:
@@ -431,6 +435,19 @@ class DecisionEngine:
             "avoided_dsm_rs": round(d.meter.avoided_dsm_rs, 0),
             "minutes": round(d.meter.seconds / 60, 1),
         }
+        now = d.updated_at
+        if not d.timeline or now - d.timeline[-1]["t"] >= TIMELINE_S:
+            d.timeline.append(
+                {
+                    "t": now,
+                    "target": round(d.current.get("requirement_mw", 0.0), 1),
+                    "dispatched": round(sum(v for v in self.commands.live_setpoints().values() if v > 0), 1),
+                    "expected": round(expected, 1),
+                    "delivered": round(delivered, 1),
+                    "ace": round(a.ace.ace, 1),
+                }
+            )
+            del d.timeline[:-TIMELINE_MAX]
         if delivered > 0.5 or d.state in ("EXECUTING", "RELEASING"):
             d.narrative["outcome"] = (
                 f"Delivering {delivered:.0f} MW of {expected:.0f} MW expected; ACE now {a.ace.ace:+.0f} MW, f {a.state.frequency:.3f} Hz; "

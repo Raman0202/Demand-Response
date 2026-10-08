@@ -325,23 +325,28 @@ class Runtime:
         m.inc("ksfp_ticks_total", help_="State-loop ticks")
 
     async def _flush(self) -> None:
-        audit_rows = [e.to_dict() for e in self.audit.outbox]
-        docs = [(k[0], k[1], v[0], v[1], v[2]) for k, v in self.dirty_docs.items()]
-        telem = list(self.pending_telem)
-        if not (audit_rows or docs or telem):
+        # The state loop appends to these buffers from a worker thread while we await the DB, so swap them out first:
+        # anything appended during the write lands in the fresh buffers instead of being cleared away unsaved.
+        if not (self.audit.outbox or self.dirty_docs or self.pending_telem):
             return
+        outbox, self.audit.outbox = self.audit.outbox, []
+        dirty, self.dirty_docs = self.dirty_docs, {}
+        telem, self.pending_telem = self.pending_telem, []
+        audit_rows = [e.to_dict() for e in outbox]
+        docs = [(k[0], k[1], v[0], v[1], v[2]) for k, v in dirty.items()]
         try:
-            await self.store.flush(audit_rows, docs, telem)
-            self.audit.outbox.clear()
-            self.dirty_docs.clear()
-            self.pending_telem.clear()
+            await self.store.flush(audit_rows, docs, list(telem))
             self.store.healthy = True
             if any(d.closed_at for d in self.engine.decisions.values()):
                 await self.store.save_reliability(self.reliability, self.clock.now())
         except Exception as e:
+            # put the batch back in front of anything newer; newer document versions win
+            self.audit.outbox[:0] = outbox
+            self.pending_telem[:0] = telem
+            self.dirty_docs = {**dirty, **self.dirty_docs}
             self.store.healthy = False
             self.store.failures += 1
-            log.warning("persist failed (%s) — buffering %d audit rows", e, len(audit_rows))
+            log.warning("persist failed (%s) — buffering %d audit rows", e, len(self.audit.outbox))
 
     # ------------------------------------------------------------------ frames for the UI
     def frame(self) -> dict | None:

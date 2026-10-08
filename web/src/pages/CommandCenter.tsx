@@ -1,15 +1,16 @@
-// Command Center — answers the four operator questions on one screen:
+// Overview — DR headline numbers, then the four operator questions on one screen:
 // NOW (what is happening) · AT RISK (what is abnormal) · NEXT (what will happen) · INTENT (what the system will do)
 import { useState } from 'react'
 import { Area, AreaChart, CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts'
-import { Bot, Check, CheckCheck, Clock3, LayoutDashboard, Loader2, ShieldCheck, Telescope } from 'lucide-react'
+import { Activity, BatteryCharging, Bot, Check, CheckCheck, Clock3, IndianRupee, Loader2, Send, ShieldCheck, Target, Telescope, Users } from 'lucide-react'
 import { FitPager } from '@/components/common'
-import { Empty, GoLink, PageHeader, Panel, Prio, StoryChain } from '@/components/page'
-import { KarnatakaMap } from '@/components/three/KarnatakaMap'
+import { Empty, GoLink, KpiCard, Panel, Prio, StoryChain } from '@/components/page'
+import { TerritoryMap } from '@/components/three/TerritoryMap'
 import { Button } from '@/components/ui/button'
 import type { Alarm, DecisionSummary } from '@/data/types'
 import { useApi } from '@/hooks'
 import { api } from '@/lib/api'
+import { capacity, useParticipants } from '@/lib/dr'
 import { fmtMW, fmtRs } from '@/lib/geo'
 import { chartTooltip, signed } from '@/lib/ui'
 import { cn } from '@/lib/utils'
@@ -43,15 +44,85 @@ export function CommandCenter() {
   if (!f) return null
   return (
     <div className="flex h-full flex-col gap-3">
-      <PageHeader icon={<LayoutDashboard className="size-4" />} title="Command Center" />
+      <DrStrip />
       <div className="grid min-h-0 flex-1 grid-cols-12 gap-3">
         <NowPanel />
-        <div className="col-span-5 grid min-h-0 min-w-0 grid-rows-[0.75fr_0.85fr_1.3fr] gap-3">
+        <div className="col-span-5 grid min-h-0 min-w-0 grid-cols-[minmax(0,1fr)] grid-rows-[0.72fr_0.85fr_1.55fr] gap-3">
           <RiskPanel data={data} />
           <NextPanel forecast={data?.next ?? null} />
           <IntentPanel data={data} />
         </div>
       </div>
+    </div>
+  )
+}
+
+/* ------------------------------------------------------------------ DR HEADLINE */
+// The six numbers a DR operator watches: how much is needed, how much can be called, what is called, what is delivered,
+// who is reachable, and what it is worth.
+function DrStrip() {
+  const f = useLive((s) => s.frame)!
+  const go = useUI((s) => s.go)
+  const { data: parts } = useParticipants()
+  const { data: rep } = useApi<{ net_benefit_rs: number; avoided_dsm_rs: number; decisions: number; delivered_mwh: number }>('/reports/summary', { intervalMs: 15000 })
+  const c = capacity(parts ?? [])
+  const need = f.requirement
+  const covered = need > 0 ? Math.min(1, c.dispatched / need) : 1
+  const ev = f.active_decision
+  return (
+    <div className="grid shrink-0 grid-cols-6 gap-2">
+      <KpiCard
+        icon={<Target />}
+        label="Grid need now"
+        value={need > 1 ? `${fmtMW(need)} ${f.direction === 'UP' ? '↓ load' : '↑ load'}` : 'None'}
+        sub={need > 1 ? `ACE ${signed(f.ace)} MW · ${f.frequency.toFixed(2)} Hz` : `ACE ${signed(f.ace)} MW — within band`}
+        tone={f.severity === 'EMERGENCY' ? 'bad' : f.severity === 'ALERT' ? 'warn' : 'good'}
+        onClick={() => go('analysis')}
+      />
+      <KpiCard
+        icon={<BatteryCharging />}
+        label="Flexibility available"
+        value={fmtMW(c.available)}
+        fill={c.contracted ? c.available / c.contracted : 0}
+        sub={`of ${fmtMW(c.contracted)} contracted · reliability-weighted`}
+        tone={need > 1 && c.available < need - c.dispatched ? 'warn' : 'info'}
+        onClick={() => go('resources')}
+      />
+      <KpiCard
+        icon={<Send />}
+        label="Dispatched"
+        value={fmtMW(c.dispatched)}
+        fill={need > 1 ? covered : undefined}
+        sub={need > 1 ? `${(covered * 100).toFixed(0)}% of need · ${c.active} participants` : `${c.active} participants active`}
+        tone={need > 1 && covered < 0.8 ? 'warn' : c.dispatched > 0.5 ? 'info' : undefined}
+        onClick={() => go('decisions')}
+      />
+      <KpiCard
+        icon={<Activity />}
+        label="Delivering (metered)"
+        value={fmtMW(c.delivering)}
+        fill={c.dispatched > 0.5 ? c.delivering / c.dispatched : undefined}
+        sub={c.dispatched > 0.5 ? `${((c.delivering / c.dispatched) * 100).toFixed(0)}% of dispatched` : 'no active dispatch'}
+        tone={c.dispatched > 0.5 ? (c.delivering / c.dispatched >= 0.85 ? 'good' : 'warn') : undefined}
+        onClick={() => go('decisions')}
+      />
+      <KpiCard
+        icon={<Users />}
+        label="Participants online"
+        value={`${c.online} / ${c.participants}`}
+        fill={c.participants ? c.online / c.participants : 0}
+        sub={c.commsLost || c.outOfService ? `${c.commsLost} comms lost · ${c.outOfService} out of service` : 'all reachable'}
+        tone={c.commsLost ? 'warn' : 'good'}
+        onClick={() => go('resources')}
+      />
+      <KpiCard
+        icon={<IndianRupee />}
+        label={ev ? `Event ${ev.id}` : 'Programme value'}
+        value={ev ? ev.state.replace('_', ' ') : fmtRs(rep?.net_benefit_rs ?? 0)}
+        sub={ev ? `${fmtMW(ev.planned_mw)} planned · rev ${ev.revision}` : `${rep?.decisions ?? 0} events settled · ${fmtRs(rep?.avoided_dsm_rs ?? 0)} penalties avoided`}
+        tone={ev ? (ev.state === 'AWAITING_APPROVAL' ? 'warn' : 'info') : 'good'}
+        onClick={() => go(ev ? 'decisions' : 'reports', ev?.id)}
+      />
     </div>
   )
 }
@@ -63,18 +134,9 @@ function NowPanel() {
   const go = useUI((s) => s.go)
   const t = trend.slice(-240)
   const vitals = [
-    {
-      k: 'frequency',
-      label: 'Frequency',
-      v: `${f.frequency.toFixed(3)} Hz`,
-      tone: f.frequency < 49.9 || f.frequency > 50.05 ? 'warn' : 'ok',
-      color: '#38bdf8',
-      ref: [49.9, 50.05],
-    },
-    { k: 'ace', label: 'ACE', v: `${signed(f.ace)} MW`, tone: Math.abs(f.ace) >= 300 ? 'bad' : Math.abs(f.ace) >= 100 ? 'warn' : 'ok', color: '#8b5cf6', ref: [0] },
-    { k: 'deviation', label: 'Deviation', v: `${signed(f.deviation)} MW`, tone: Math.abs(f.deviation) > 100 ? 'warn' : 'ok', color: '#f59e0b', ref: [0] },
-    { k: 'demand', label: 'Demand', v: fmtMW(f.demand), tone: 'ok', color: '#0ea5e9' },
-    { k: 'drawal', label: `Drawal (sch ${f.schedule.toFixed(0)})`, v: fmtMW(f.drawal), tone: 'ok', color: '#f97316' },
+    { k: 'frequency', label: 'Frequency', v: `${f.frequency.toFixed(3)} Hz`, tone: f.frequency < 49.9 || f.frequency > 50.05 ? 'warn' : 'ok', color: '#38bdf8' },
+    { k: 'ace', label: 'ACE', v: `${signed(f.ace)} MW`, tone: Math.abs(f.ace) >= 300 ? 'bad' : Math.abs(f.ace) >= 100 ? 'warn' : 'ok', color: '#8b5cf6' },
+    { k: 'demand', label: 'System demand', v: fmtMW(f.demand), tone: 'ok', color: '#0ea5e9' },
     { k: 're', label: 'Renewables', v: fmtMW(f.re), tone: 'ok', color: '#65a30d' },
   ] as const
   return (
@@ -85,33 +147,37 @@ function NowPanel() {
           <span className="size-2 rounded-full bg-emerald-500" /> Now — what is happening
         </span>
       }
-      aside={<GoLink onClick={() => go('operations')}>Operations</GoLink>}
-      bodyClass="flex flex-col gap-2.5"
+      aside={<GoLink onClick={() => go('operations')}>Grid view</GoLink>}
+      bodyClass="relative p-0"
     >
-      <div className="grid shrink-0 grid-cols-6 gap-2">
+      <TerritoryMap compact className="rounded-none border-0" />
+      <div className="pointer-events-none absolute top-2 right-2 grid w-[150px] gap-1.5">
         {vitals.map((x) => (
           <div
             key={x.k}
-            className={cn('rounded-lg border px-2 py-1.5', x.tone === 'bad' ? 'border-rose-200 bg-rose-50/60' : x.tone === 'warn' ? 'border-amber-200 bg-amber-50/60' : 'bg-white')}
+            className={cn(
+              'rounded-lg border bg-white/90 px-2 py-1 shadow-xs backdrop-blur',
+              x.tone === 'bad' ? 'border-rose-200' : x.tone === 'warn' ? 'border-amber-200' : 'border-slate-200',
+            )}
           >
-            <div className="truncate text-[10px] text-slate-500">{x.label}</div>
-            <div className={cn('font-mono text-[13px] font-semibold tabular-nums', x.tone === 'bad' ? 'text-rose-600' : x.tone === 'warn' ? 'text-amber-700' : 'text-slate-800')}>
-              {x.v}
+            <div className="flex items-baseline justify-between gap-1">
+              <span className="truncate text-[10px] text-slate-500">{x.label}</span>
+              <span
+                className={cn('font-mono text-[12px] font-semibold tabular-nums', x.tone === 'bad' ? 'text-rose-600' : x.tone === 'warn' ? 'text-amber-700' : 'text-slate-800')}
+              >
+                {x.v}
+              </span>
             </div>
-            <div className="h-6">
+            <div className="h-5">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={t}>
                   <YAxis hide domain={['dataMin', 'dataMax']} />
-                  {'ref' in x && x.ref?.map((r) => <ReferenceLine key={r} y={r} stroke="#e2e8f0" strokeDasharray="2 2" />)}
                   <Line dataKey={x.k} stroke={x.color} dot={false} strokeWidth={1.5} isAnimationActive={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
         ))}
-      </div>
-      <div className="min-h-0 flex-1">
-        <KarnatakaMap compact />
       </div>
     </Panel>
   )

@@ -1,60 +1,86 @@
-# KSFP — Karnataka State Flexibility & Demand Response Platform
+# Demand Response Platform
 
-An operator-facing prototype of a **state-level Demand Response + VPP + Digital Twin** platform for the Karnataka control area (KPTCL SLDC / SRLDC). The app walks an operator through one connected journey, **Observe → Simulate → Decide → Act → Learn**, over a live 3D model of the Karnataka grid.
+An autonomous demand-response operations platform for a grid control centre (SLDC). It runs the full DR loop continuously:
 
-The app is in `web/`. It uses React 19, TypeScript, Vite, Tailwind v4, **shadcn/ui** (Radix), **zustand**, react-three-fiber / drei and Recharts.
+**detect the grid need → forecast it → choose the cheapest reliable mix of flexibility → dispatch under a human-in-the-loop policy → meter delivery against baseline → settle participants → learn their reliability**, with every step explained and written to a tamper-evident audit trail.
 
-```bash
-cd web
-npm install
-npm run dev        # http://localhost:5173
-npm test           # engine unit tests (vitest)
-npm run build
-npm run scenarios  # run every scenario preset through the engine (CLI summary)
+The reference deployment is configured for the Karnataka control area (KPTCL SLDC). Its 220 kV load channels and generating stations can be ingested live from the SLDC website. The platform itself is not tied to one state: topology, programmes and participants are all data.
+
+```
+backend/   FastAPI service: ingest, detect, forecast, decide, act, settle, audit (Python 3.13)
+web/       Operator UI: React 19, Vite, Tailwind v4, shadcn/ui (Radix), zustand, react-three-fiber, Recharts
+docs/      ARCHITECTURE.md (system design), UX-IA.md (information architecture & operator workflow)
 ```
 
-### Docker
+## Run it
+
+### Docker (full stack)
 
 ```bash
-docker compose up --build              # production build behind nginx → http://localhost:8080
-docker compose --profile dev up web-dev # Vite dev server with hot reload → http://localhost:5173
+docker compose up --build                     # UI + API → http://localhost:8080
+docker compose --profile db up --build        # + TimescaleDB (set KSFP_DATABASE_URL, see below)
+docker compose --profile dev up               # Vite hot reload against the API container → http://localhost:5173
 ```
 
-The image (`web/Dockerfile`) is multi-stage. It runs `npm ci`, then type-checks, runs the engine tests and builds. A failing test fails the image build. The result is served by `nginx:alpine` on port 8080 (about 76 MB), with SPA fallback routing, gzip, immutable caching for hashed assets, basic security headers and a `/healthz` endpoint used by the container `HEALTHCHECK`.
+nginx serves the UI and proxies `/api`, `/ws` (live stream) and `/health|/ready|/metrics` to the API container.
 
-## Experience
+### Local development
 
-- **Lifecycle rail** (on every screen): Observe · Simulate · Decide · Act · Learn, with one context-aware **Next best action** button.
-- **Fixed-viewport layout with no page scrolling.** Detail is split into section tabs, and long tables paginate to fit the space available.
-- **Grid Monitor**: live KPIs, 3D Karnataka twin, event detection banner, and tabs for trends, network, flexibility and supply.
-- **Decision Center**: an 8-step guided flow. A "decision chain" rail carries each step's conclusion forward:
-  1. **Detect** shows deviation and ACE (IEGC formula, with the numbers substituted) and the severity rules.
-  2. **Exposure** applies the CERC DSM rule engine: NR = max(A, B, C), energy-based, with a volume band and frequency multipliers.
-  3. **Flexibility** shows available vs expected MW (× reliability), with SRAS/TRAS portions locked (no double commitment).
-  4. **Options** compares Do-nothing, RTM, Generation, BESS, DR and Optimal mix like-for-like.
-  5. **Plan** is a network-aware merit order block by block. PTDF line headroom, ramp, duration, SoC and rebound constrain it.
-  6. **Digital Twin** simulates minute by minute (heartbeat, SoC, power flow, voltage, P90 reserve, rebound) and automatically re-solves when a check fails.
-  7. **Dispatch** handles signed commands, single or dual authorisation, and the Shadow / Advisory / Closed-loop modes. An animated command wave runs on the map.
-  8. **Verify & Settle** covers M&V, shortfall re-dispatch, performance-factor settlement and reliability learning.
-- **Scenario Lab**: 8 presets (cloud cover, heatwave, line outage, RTM spike, comms failure, non-compliance, 1.5 GW loss, surplus) plus custom sliders, with an instant strategy comparison.
-- **Flexibility Registry**, **Settlement & M&V**, and a hash-chained **Audit Log**.
+```bash
+cd backend && python -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
+.venv/bin/uvicorn ksfp.main:app --port 8000        # API + autonomous loops
+.venv/bin/python -m pytest -q                      # backend tests
 
-## Code map (`web/src`)
+cd web && npm install && npm run dev               # http://localhost:5173 (proxies /api and /ws to :8000)
+npm run build                                      # type-check + production bundle
+```
 
-| Path | What |
+Demo accounts (password = username + `123`): `operator`, `sic` (shift-in-charge), `analyst`, `engineer`, `admin`.
+
+### Configuration (environment)
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `KSFP_DATABASE_URL` | `sqlite+aiosqlite:///./data/ksfp.db` | Use `postgresql+asyncpg://…` for PostgreSQL; telemetry becomes a TimescaleDB hypertable when the extension is present |
+| `KSFP_JWT_SECRET` | random per start | **Set in production** (tokens must survive restarts) |
+| `KSFP_SOURCE` | `simulated` | `hybrid` polls the SLDC website (all DISCOM 220 kV load pages + StateGen) and overrides/calibrates the simulated field |
+| `KSFP_KPTCL_POLL_S` | `300` | SLDC website poll interval |
+| `KSFP_TIME_SCALE` | `20` | Simulated-clock speed (1 in hybrid mode) |
+| `KSFP_AUTO_DISTURBANCES` | `true` | Random field events for drills |
+| `KSFP_DEMO_USERS` | `true` | Seed the demo accounts |
+
+Hybrid mode needs outbound HTTPS to `kptclsldc.in` from the API host. If a page can't be fetched, its channels stay simulated, and Administration → Data sources shows per-page health and any unmapped rows.
+
+## Operator experience
+
+Top-bar navigation follows the DR workflow (no sidebar, no vertical scrolling, no page titles; the selected tab names the page):
+
+| Module | What the operator gets |
 | --- | --- |
-| `data/karnataka.ts` | 24 substations, 6 ISTS tie points, 39 lines, 13 generators, 25 flexible assets |
-| `engine/network.ts` | DC power flow (distributed slack at ISTS ties) and PTDFs |
-| `engine/dsm.ts` | DSM rule engine (configurable multiplier table) |
-| `engine/grid.ts` | snapshot builder, ACE, severity, P90 margin |
-| `engine/flexibility.ts` · `optimizer.ts` · `twin.ts` · `settlement.ts` · `decision.ts` | the decision pipeline |
-| `store/` | zustand stores: live grid, decision workflow, UI, persisted history/audit |
-| `components/three/` | 3D Karnataka scene (state mesh, lines + flow particles, assets, command wave, label layer) |
-| `components/decision/` | the 8 step screens |
+| **Overview** | Headline DR numbers: grid need, flexibility available, dispatched, delivering, participants online, event/value. Then four panels: *Now* (live 3D territory map), *At risk* (prioritised alarms), *Next* (P10–P90 forecast, predicted violations), *Intent* (what the system is doing, explained as Situation → Impact → Prediction → Recommendation → Action → Outcome, with Approve) |
+| **DR Events** | Event log with delivery progress. Per event: target / dispatched / delivering / performance / duration / value, a live target-vs-dispatched-vs-delivered curve, and tabs for participants, grid need, options compared, safety checks, dispatch commands, revisions and settlement. Approve, reject or abort with reasons |
+| **Programs** | Interruptible load, C&I curtailment, load shifting, DER & EV, battery storage and supply-side flex. Each shows available vs contracted MW, participants online, reliability and price. Below: the participant registry with live setpoint → delivery, telemetry and take-out-of-service |
+| **Grid** | Network loading, resources in action, every 220 kV load channel by DISCOM (live vs simulated) and every generating station, on the 3D map |
+| **Forecast** | ACE / demand / renewables P10–P50–P90, predicted violations, recent behaviour, forecast accuracy |
+| **Alarms** | ISA-18.2 style alarms (on/off delays, ack, shelve with reason) correlated into incidents |
+| More → **What-if** | Run a hypothetical event on a copy of live state: strategies, optimal plan, safety gate; nothing is dispatched |
+| More → **Settlement & Audit** | Settled events, energy vs baseline, payments, net benefit, participant reliability, and the hash-chained audit trail with one-click verification |
+| More → **Administration** | Autonomy level and L2 envelope, dual-authorisation threshold, data-source health, simulator drills, DSM rule table, users and roles |
 
-## Important caveats
+The status cluster (severity, autonomy level with kill switch, data confidence, clock, stream health, user) is always visible.
 
-- **DSM multipliers are illustrative.** The structure follows the CERC DSM Regulations 2024 (energy-based, NR = max(A, B, C), volume band). Load the notified table, with amendments, into the config before any real use.
-- **The network is a screening model.** It is a simplified 24-bus DC power flow with planning-level limits, not KPTCL's actual topology or ratings. The real grid has many more parallel paths, so the model is not N-1 secure everywhere.
-- **The optimizer is an explainable greedy solution** of the constrained dispatch problem. The production design replaces it with a Pyomo/HiGHS MILP + MPC that uses the same constraint set.
-- All asset names, capacities, bids and reliabilities are representative demo data. The Karnataka boundary comes from the MIT-licensed `datamaps` India topology.
+## Backend at a glance
+
+- **Runtime loops:** 1 Hz state loop (ingest → quality → estimate → assess → detect → decide → dispatch), forecast every simulated minute, SLDC poller, write-behind persistence every 10 s, and a dead-man watchdog.
+- **Decide:** a network-constrained multi-block LP (HiGHS) re-solved every block (MPC). Before any command, a Digital-Twin gate checks heartbeat, SoC, flows, voltage, reserve and rebound, and excludes or derates anything that fails.
+- **Autonomy policy:** L0 Monitor, L1 Advisory, L2 Supervised (automatic only inside an envelope), L3 Autonomous. It degrades automatically on low data confidence or an unhealthy loop. Includes a kill switch and dual authorisation above a MW threshold.
+- **Act:** signed setpoint commands with ack timeouts, a dead-band and no blind resend. Measurement & verification (M&V) runs per tick, with performance-factor settlement and reliability learning.
+- **Trust:** JWT + RBAC (operator / shift-in-charge / analyst / engineer / admin), and a SHA-256 hash-chained audit log with a verify endpoint. Probes and Prometheus metrics are exposed at `/health`, `/ready` and `/metrics`.
+
+See `docs/ARCHITECTURE.md` for the full design, scaling path and failure modes.
+
+## Caveats
+
+- **DSM multipliers are illustrative.** The structure follows the CERC DSM Regulations 2024. Load the notified table via Administration / `PUT /api/v1/admin/config/dsm` before real use.
+- **The network is a screening model.** It is a simplified DC power flow with planning-level limits, not the utility's EMS model.
+- **Demo data:** participant names, capacities, bids and reliabilities are representative demo data. The simulated field stands in for SCADA/EMS and DR gateways until real integrations are connected.

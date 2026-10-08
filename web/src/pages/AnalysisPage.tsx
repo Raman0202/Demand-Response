@@ -1,7 +1,7 @@
 // Forecast & Analysis — what will happen (P10–P90), predicted violations, recent behaviour, forecast accuracy.
 import { Area, CartesianGrid, ComposedChart, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts'
-import { Clock3, LineChart as LineIcon } from 'lucide-react'
-import { PageHeader, Panel, Stat, StatStrip } from '@/components/page'
+import { Clock3 } from 'lucide-react'
+import { Panel, Stat, StatStrip } from '@/components/page'
 import { useApi } from '@/hooks'
 import { fmtMW, fmtRs } from '@/lib/geo'
 import { chartTooltip } from '@/lib/ui'
@@ -29,7 +29,6 @@ export function AnalysisPage() {
   const legend = { iconSize: 8, wrapperStyle: { fontSize: 10, paddingTop: 2 } } as const
   return (
     <div className="flex h-full flex-col gap-3">
-      <PageHeader icon={<LineIcon className="size-4" />} title="Forecast & Analysis" />
       <StatStrip>
         <Stat
           label="ACE in 1 block (P50)"

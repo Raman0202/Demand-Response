@@ -1,7 +1,7 @@
 // What-if sandbox — perturb a copy of the live state and see what the system would decide. Nothing is dispatched.
 import { useState } from 'react'
 import { FlaskConical, Play, ShieldCheck } from 'lucide-react'
-import { Empty, PageHeader, Panel, Stat } from '@/components/page'
+import { Empty, Panel, Stat } from '@/components/page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -113,9 +113,8 @@ export function WhatIfPage() {
   const best = res?.strategies.reduce((m, s) => (s.total_rs < m.total_rs ? s : m), res.strategies[0])
   return (
     <div className="flex h-full flex-col gap-3">
-      <PageHeader icon={<FlaskConical className="size-4" />} title="What-if sandbox" actions={<Badge variant="outline">Sandbox · no side effects</Badge>} />
       <div className="grid min-h-0 flex-1 grid-cols-[300px_minmax(0,1fr)] gap-3">
-        <Panel title="Scenario" bodyClass="flex flex-col gap-3.5">
+        <Panel title="Scenario" aside={<Badge variant="outline">Sandbox · nothing dispatched</Badge>} bodyClass="flex flex-col gap-3.5">
           <div className="space-y-1.5">
             <Label className="text-xs">Region of demand shock</Label>
             <Select value={p.region} onValueChange={(v) => set('region', v)}>

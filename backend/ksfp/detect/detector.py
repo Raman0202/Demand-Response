@@ -47,11 +47,11 @@ def conditions(
         out.append(Condition("FREQ:HIGH", "FREQ_HIGH", "BALANCE", 3, "Frequency above IEGC band", f"f = {f:.3f} Hz (> 50.05)", f, on_delay=30))
     ace = a.ace.ace
     if abs(ace) >= 1000:
-        out.append(Condition("ACE:STATE", "ACE", "BALANCE", 1, f"ACE {ace:+.0f} MW", f"State {'short' if ace < 0 else 'long'} by {abs(ace):.0f} MW", ace, on_delay=20))
+        out.append(Condition("ACE:STATE", "ACE", "BALANCE", 1, f"ACE {ace:+.0f} MW", f"Control area {'short' if ace < 0 else 'long'} by {abs(ace):.0f} MW", ace, on_delay=20))
     elif abs(ace) >= 300:
-        out.append(Condition("ACE:STATE", "ACE", "BALANCE", 2, f"ACE {ace:+.0f} MW", f"State {'short' if ace < 0 else 'long'} by {abs(ace):.0f} MW", ace, on_delay=30))
+        out.append(Condition("ACE:STATE", "ACE", "BALANCE", 2, f"ACE {ace:+.0f} MW", f"Control area {'short' if ace < 0 else 'long'} by {abs(ace):.0f} MW", ace, on_delay=30))
     elif abs(ace) >= 100:
-        out.append(Condition("ACE:STATE", "ACE", "BALANCE", 3, f"ACE {ace:+.0f} MW", f"State {'short' if ace < 0 else 'long'} by {abs(ace):.0f} MW", ace, on_delay=60))
+        out.append(Condition("ACE:STATE", "ACE", "BALANCE", 3, f"ACE {ace:+.0f} MW", f"Control area {'short' if ace < 0 else 'long'} by {abs(ace):.0f} MW", ace, on_delay=60))
     for lid, v in s.flow.loading.items():
         if v >= 1.0:
             out.append(Condition(f"LINE:{lid}", "LINE_OVERLOAD", "NETWORK", 1, f"Overload {t.line_label(lid)}", f"{v * 100:.0f}% of {t.line(lid)['limitMW']} MW", v, on_delay=20))

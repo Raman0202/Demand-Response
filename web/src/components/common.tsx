@@ -142,6 +142,11 @@ export function FitPager<T>({
     ro.observe(el)
     return () => ro.disconnect()
   }, [rowHeight, reserve])
+  // new data can mean shorter rows or more room: start again from the estimate (the shrink pass below runs before paint)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (el) setSize(Math.max(1, Math.floor((el.clientHeight - reserve) / rowHeight)))
+  }, [items, rowHeight, reserve])
   // rowHeight is an estimate: if the rendered rows are taller, shrink the page until it fits (never scroll).
   // Runs after every render but only ever decrements, so it terminates at the largest size that fits.
   // eslint-disable-next-line react-hooks/exhaustive-deps

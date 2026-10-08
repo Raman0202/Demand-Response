@@ -1,8 +1,8 @@
 // Administration — autonomy policy, data sources (incl. KPTCL SLDC pages), field simulator, DSM rules, users.
 import { useState } from 'react'
-import { RefreshCw, Settings, Trash2, Zap } from 'lucide-react'
+import { RefreshCw, Trash2, Zap } from 'lucide-react'
 import { FitPager, SectionTabs } from '@/components/common'
-import { Empty, PageHeader, Panel } from '@/components/page'
+import { Empty, Panel } from '@/components/page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,7 +20,6 @@ import { clockS } from '@/store/useLive'
 export function AdminPage() {
   return (
     <div className="flex h-full flex-col gap-3">
-      <PageHeader icon={<Settings className="size-4" />} title="Administration" />
       <Panel className="flex-1" bodyClass="flex flex-col">
         <SectionTabs
           sections={[

@@ -197,3 +197,35 @@ def test_closed_loop_supervised_autonomy_resolves_event():
     d = list(eng.decisions.values())[0]
     assert worst < 400  # autonomy held ACE well below the ~700 MW disturbance
     assert d.state == "COMPLETED" and d.settlement and d.settlement["avoided_dsm_rs"] > 0
+    # event performance curve is recorded for the DR Events view
+    assert len(d.timeline) > 10 and max(p["delivered"] for p in d.timeline) > 100
+    assert all(p["target"] >= 0 for p in d.timeline)
+
+
+async def test_flush_keeps_audit_entries_appended_during_write(tmp_path):
+    """Regression: entries appended by the state-loop thread while a flush awaits the DB must not be dropped."""
+    import asyncio
+
+    from ksfp.audit.log import AuditLog
+    from ksfp.core.settings import Settings
+    from ksfp.runtime import Runtime
+
+    r = Runtime(Settings(database_url=f"sqlite+aiosqlite:///{tmp_path / 'a.db'}", jwt_secret="t", auto_disturbances=False))
+    await r.store.init()
+    real = r.store.flush
+
+    async def slow_flush(*a):
+        await asyncio.sleep(0)
+        r.audit.append(1.0, "SYSTEM", "test", "appended during write")  # what the tick thread does mid-flush
+        await real(*a)
+
+    r.store.flush = slow_flush
+    for i in range(3):
+        r.audit.append(float(i), "SYSTEM", "test", f"entry {i}")
+    await r._flush()
+    r.store.flush = real
+    await r._flush()
+    rows = await r.store.audit_all()
+    assert [e["seq"] for e in rows] == list(range(1, len(rows) + 1)) and len(rows) == 4
+    assert AuditLog.verify(rows)["ok"]
+    await r.store.engine.dispose()

@@ -48,6 +48,51 @@ export function Stat({ label, value, tone, sub }: { label: string; value: string
   )
 }
 
+/** Headline KPI card: icon, value, context line and an optional fill bar (e.g. delivered / dispatched). */
+export function KpiCard({
+  icon,
+  label,
+  value,
+  sub,
+  tone,
+  fill,
+  onClick,
+  children,
+}: {
+  icon: ReactNode
+  label: string
+  value: ReactNode
+  sub?: ReactNode
+  tone?: 'good' | 'warn' | 'bad' | 'info'
+  fill?: number
+  onClick?: () => void
+  children?: ReactNode
+}) {
+  const ring = tone === 'bad' ? 'border-rose-200 bg-rose-50/50' : tone === 'warn' ? 'border-amber-200 bg-amber-50/50' : 'bg-white'
+  const text = tone === 'bad' ? 'text-rose-600' : tone === 'warn' ? 'text-amber-700' : tone === 'good' ? 'text-emerald-700' : tone === 'info' ? 'text-sky-700' : 'text-slate-800'
+  const bar = tone === 'bad' ? 'bg-rose-400' : tone === 'warn' ? 'bg-amber-400' : tone === 'good' ? 'bg-emerald-400' : 'bg-sky-400'
+  return (
+    <button
+      onClick={onClick}
+      disabled={!onClick}
+      className={cn('flex min-w-0 flex-col gap-1 rounded-xl border px-3 py-2 text-left shadow-xs transition enabled:hover:shadow-sm', ring)}
+    >
+      <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+        <span className="text-slate-400 [&_svg]:size-3.5">{icon}</span>
+        <span className="truncate">{label}</span>
+      </div>
+      <div className={cn('truncate font-mono text-lg leading-tight font-semibold tabular-nums', text)}>{value}</div>
+      {fill != null && (
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+          <div className={cn('h-full rounded-full transition-all', bar)} style={{ width: `${Math.max(0, Math.min(100, fill * 100))}%` }} />
+        </div>
+      )}
+      {sub && <div className="truncate text-[11px] text-slate-500">{sub}</div>}
+      {children}
+    </button>
+  )
+}
+
 /** KPI strip directly under the page header: the page's primary numbers at a glance. */
 export function StatStrip({ children }: { children: ReactNode }) {
   return <div className="grid shrink-0 auto-cols-fr grid-flow-col gap-2">{children}</div>
@@ -105,7 +150,7 @@ export function StoryChain({ narrative, compact }: { narrative: Record<string, u
             {compact ? (
               <div className="flex min-w-0 flex-1 items-baseline gap-2 pt-0.5" title={text}>
                 <span className="w-[112px] shrink-0 text-[10px] font-semibold tracking-wider text-slate-400 uppercase">{label}</span>
-                <span className="min-w-0 flex-1 truncate text-[12px] text-slate-700">{text}</span>
+                <span className="line-clamp-2 min-w-0 flex-1 text-[12px] leading-snug text-slate-700">{text}</span>
               </div>
             ) : (
               <div className="min-w-0 pb-0.5">
