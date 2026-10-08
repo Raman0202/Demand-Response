@@ -1,0 +1,3139 @@
+{
+ "meta": {
+  "baseDemandMW": 17200,
+  "baseScheduleMW": 8100,
+  "freqBiasMWPer0_1Hz": -160,
+  "blockMin": 15
+ },
+ "sldc": {
+  "name": "KPTCL SLDC, Bengaluru",
+  "lon": 77.585,
+  "lat": 12.975
+ },
+ "boundary": [
+  [
+   77.55,
+   18.307
+  ],
+  [
+   77.585,
+   18.284
+  ],
+  [
+   77.567,
+   18.235
+  ],
+  [
+   77.6,
+   18.126
+  ],
+  [
+   77.559,
+   18.077
+  ],
+  [
+   77.611,
+   18.017
+  ],
+  [
+   77.626,
+   17.942
+  ],
+  [
+   77.515,
+   17.847
+  ],
+  [
+   77.5,
+   17.812
+  ],
+  [
+   77.532,
+   17.755
+  ],
+  [
+   77.462,
+   17.715
+  ],
+  [
+   77.413,
+   17.631
+  ],
+  [
+   77.491,
+   17.577
+  ],
+  [
+   77.582,
+   17.58
+  ],
+  [
+   77.6,
+   17.548
+  ],
+  [
+   77.687,
+   17.568
+  ],
+  [
+   77.649,
+   17.496
+  ],
+  [
+   77.6,
+   17.488
+  ],
+  [
+   77.57,
+   17.444
+  ],
+  [
+   77.515,
+   17.419
+  ],
+  [
+   77.375,
+   17.223
+  ],
+  [
+   77.366,
+   17.18
+  ],
+  [
+   77.424,
+   17.143
+  ],
+  [
+   77.468,
+   17.025
+  ],
+  [
+   77.436,
+   16.956
+  ],
+  [
+   77.433,
+   16.8
+  ],
+  [
+   77.41,
+   16.737
+  ],
+  [
+   77.445,
+   16.697
+  ],
+  [
+   77.413,
+   16.648
+  ],
+  [
+   77.448,
+   16.639
+  ],
+  [
+   77.433,
+   16.593
+  ],
+  [
+   77.389,
+   16.565
+  ],
+  [
+   77.372,
+   16.524
+  ],
+  [
+   77.258,
+   16.45
+  ],
+  [
+   77.293,
+   16.406
+  ],
+  [
+   77.494,
+   16.378
+  ],
+  [
+   77.532,
+   16.36
+  ],
+  [
+   77.553,
+   16.317
+  ],
+  [
+   77.491,
+   16.263
+  ],
+  [
+   77.483,
+   16.001
+  ],
+  [
+   77.448,
+   15.952
+  ],
+  [
+   77.234,
+   15.975
+  ],
+  [
+   77.164,
+   15.967
+  ],
+  [
+   77.074,
+   15.921
+  ],
+  [
+   77.033,
+   15.875
+  ],
+  [
+   77.027,
+   15.76
+  ],
+  [
+   77.085,
+   15.668
+  ],
+  [
+   77.009,
+   15.645
+  ],
+  [
+   77.009,
+   15.512
+  ],
+  [
+   76.965,
+   15.515
+  ],
+  [
+   77.015,
+   15.417
+  ],
+  [
+   77.027,
+   15.351
+  ],
+  [
+   77.106,
+   15.308
+  ],
+  [
+   77.132,
+   15.141
+  ],
+  [
+   77.088,
+   15.046
+  ],
+  [
+   77.041,
+   15.006
+  ],
+  [
+   76.995,
+   15.035
+  ],
+  [
+   76.948,
+   15.021
+  ],
+  [
+   76.863,
+   15.041
+  ],
+  [
+   76.764,
+   15.095
+  ],
+  [
+   76.72,
+   14.986
+  ],
+  [
+   76.811,
+   14.949
+  ],
+  [
+   76.822,
+   14.92
+  ],
+  [
+   76.796,
+   14.785
+  ],
+  [
+   76.761,
+   14.765
+  ],
+  [
+   76.74,
+   14.612
+  ],
+  [
+   76.755,
+   14.558
+  ],
+  [
+   76.799,
+   14.535
+  ],
+  [
+   76.825,
+   14.48
+  ],
+  [
+   76.91,
+   14.486
+  ],
+  [
+   76.93,
+   14.466
+  ],
+  [
+   76.91,
+   14.414
+  ],
+  [
+   76.875,
+   14.408
+  ],
+  [
+   76.857,
+   14.382
+  ],
+  [
+   76.875,
+   14.331
+  ],
+  [
+   76.922,
+   14.305
+  ],
+  [
+   76.907,
+   14.259
+  ],
+  [
+   77.074,
+   14.233
+  ],
+  [
+   77.082,
+   14.287
+  ],
+  [
+   77.132,
+   14.345
+  ],
+  [
+   77.17,
+   14.328
+  ],
+  [
+   77.258,
+   14.333
+  ],
+  [
+   77.269,
+   14.302
+  ],
+  [
+   77.328,
+   14.282
+  ],
+  [
+   77.369,
+   14.239
+  ],
+  [
+   77.389,
+   14.253
+  ],
+  [
+   77.357,
+   14.313
+  ],
+  [
+   77.375,
+   14.333
+  ],
+  [
+   77.465,
+   14.285
+  ],
+  [
+   77.465,
+   14.187
+  ],
+  [
+   77.375,
+   14.167
+  ],
+  [
+   77.328,
+   14.126
+  ],
+  [
+   77.36,
+   14.106
+  ],
+  [
+   77.328,
+   14.052
+  ],
+  [
+   77.389,
+   13.962
+  ],
+  [
+   77.401,
+   13.896
+  ],
+  [
+   77.386,
+   13.891
+  ],
+  [
+   77.328,
+   13.914
+  ],
+  [
+   77.328,
+   13.951
+  ],
+  [
+   77.29,
+   14.011
+  ],
+  [
+   77.243,
+   14.023
+  ],
+  [
+   77.103,
+   14.008
+  ],
+  [
+   77.082,
+   14.034
+  ],
+  [
+   76.995,
+   14.066
+  ],
+  [
+   76.968,
+   14.172
+  ],
+  [
+   76.916,
+   14.19
+  ],
+  [
+   76.875,
+   14.164
+  ],
+  [
+   76.872,
+   14.138
+  ],
+  [
+   76.942,
+   14.066
+  ],
+  [
+   76.936,
+   14.011
+  ],
+  [
+   77.009,
+   13.914
+  ],
+  [
+   76.957,
+   13.833
+  ],
+  [
+   76.968,
+   13.753
+  ],
+  [
+   76.995,
+   13.781
+  ],
+  [
+   77.041,
+   13.744
+  ],
+  [
+   77.065,
+   13.77
+  ],
+  [
+   77.129,
+   13.767
+  ],
+  [
+   77.126,
+   13.83
+  ],
+  [
+   77.1,
+   13.859
+  ],
+  [
+   77.144,
+   13.911
+  ],
+  [
+   77.155,
+   13.873
+  ],
+  [
+   77.196,
+   13.891
+  ],
+  [
+   77.293,
+   13.847
+  ],
+  [
+   77.389,
+   13.845
+  ],
+  [
+   77.424,
+   13.799
+  ],
+  [
+   77.442,
+   13.701
+  ],
+  [
+   77.489,
+   13.701
+  ],
+  [
+   77.55,
+   13.738
+  ],
+  [
+   77.597,
+   13.741
+  ],
+  [
+   77.597,
+   13.773
+  ],
+  [
+   77.64,
+   13.781
+  ],
+  [
+   77.67,
+   13.761
+  ],
+  [
+   77.693,
+   13.807
+  ],
+  [
+   77.79,
+   13.87
+  ],
+  [
+   77.772,
+   13.925
+  ],
+  [
+   77.792,
+   13.942
+  ],
+  [
+   77.88,
+   13.916
+  ],
+  [
+   77.939,
+   13.962
+  ],
+  [
+   77.941,
+   13.916
+  ],
+  [
+   77.909,
+   13.882
+  ],
+  [
+   77.921,
+   13.83
+  ],
+  [
+   77.959,
+   13.868
+  ],
+  [
+   78.032,
+   13.885
+  ],
+  [
+   78.09,
+   13.83
+  ],
+  [
+   78.082,
+   13.753
+  ],
+  [
+   78.105,
+   13.701
+  ],
+  [
+   78.055,
+   13.692
+  ],
+  [
+   78.067,
+   13.661
+  ],
+  [
+   78.134,
+   13.655
+  ],
+  [
+   78.175,
+   13.606
+  ],
+  [
+   78.231,
+   13.589
+  ],
+  [
+   78.368,
+   13.592
+  ],
+  [
+   78.351,
+   13.376
+  ],
+  [
+   78.38,
+   13.324
+  ],
+  [
+   78.459,
+   13.316
+  ],
+  [
+   78.517,
+   13.278
+  ],
+  [
+   78.552,
+   13.301
+  ],
+  [
+   78.57,
+   13.255
+  ],
+  [
+   78.517,
+   13.088
+  ],
+  [
+   78.47,
+   13.048
+  ],
+  [
+   78.415,
+   12.948
+  ],
+  [
+   78.467,
+   12.867
+  ],
+  [
+   78.345,
+   12.913
+  ],
+  [
+   78.327,
+   12.861
+  ],
+  [
+   78.242,
+   12.85
+  ],
+  [
+   78.248,
+   12.792
+  ],
+  [
+   78.231,
+   12.761
+  ],
+  [
+   78.164,
+   12.775
+  ],
+  [
+   78.055,
+   12.847
+  ],
+  [
+   78.029,
+   12.85
+  ],
+  [
+   77.988,
+   12.804
+  ],
+  [
+   77.903,
+   12.873
+  ],
+  [
+   77.845,
+   12.873
+  ],
+  [
+   77.801,
+   12.856
+  ],
+  [
+   77.754,
+   12.743
+  ],
+  [
+   77.766,
+   12.717
+  ],
+  [
+   77.69,
+   12.677
+  ],
+  [
+   77.608,
+   12.671
+  ],
+  [
+   77.567,
+   12.559
+  ],
+  [
+   77.576,
+   12.496
+  ],
+  [
+   77.62,
+   12.482
+  ],
+  [
+   77.605,
+   12.407
+  ],
+  [
+   77.562,
+   12.341
+  ],
+  [
+   77.471,
+   12.275
+  ],
+  [
+   77.465,
+   12.249
+  ],
+  [
+   77.491,
+   12.206
+  ],
+  [
+   77.667,
+   12.203
+  ],
+  [
+   77.725,
+   12.186
+  ],
+  [
+   77.769,
+   12.111
+  ],
+  [
+   77.67,
+   11.97
+  ],
+  [
+   77.489,
+   11.927
+  ],
+  [
+   77.418,
+   11.795
+  ],
+  [
+   77.339,
+   11.783
+  ],
+  [
+   77.261,
+   11.818
+  ],
+  [
+   77.132,
+   11.797
+  ],
+  [
+   77.097,
+   11.751
+  ],
+  [
+   77.012,
+   11.823
+  ],
+  [
+   76.93,
+   11.812
+  ],
+  [
+   76.869,
+   11.746
+  ],
+  [
+   76.819,
+   11.625
+  ],
+  [
+   76.752,
+   11.642
+  ],
+  [
+   76.568,
+   11.634
+  ],
+  [
+   76.551,
+   11.645
+  ],
+  [
+   76.545,
+   11.697
+  ],
+  [
+   76.504,
+   11.72
+  ],
+  [
+   76.466,
+   11.714
+  ],
+  [
+   76.416,
+   11.668
+  ],
+  [
+   76.381,
+   11.749
+  ],
+  [
+   76.308,
+   11.749
+  ],
+  [
+   76.258,
+   11.806
+  ],
+  [
+   76.212,
+   11.806
+  ],
+  [
+   76.168,
+   11.864
+  ],
+  [
+   76.098,
+   11.861
+  ],
+  [
+   76.071,
+   11.964
+  ],
+  [
+   75.984,
+   11.93
+  ],
+  [
+   75.846,
+   11.95
+  ],
+  [
+   75.782,
+   12.002
+  ],
+  [
+   75.762,
+   12.068
+  ],
+  [
+   75.636,
+   12.099
+  ],
+  [
+   75.607,
+   12.134
+  ],
+  [
+   75.554,
+   12.154
+  ],
+  [
+   75.443,
+   12.278
+  ],
+  [
+   75.385,
+   12.301
+  ],
+  [
+   75.338,
+   12.421
+  ],
+  [
+   75.37,
+   12.467
+  ],
+  [
+   75.309,
+   12.47
+  ],
+  [
+   75.25,
+   12.536
+  ],
+  [
+   75.271,
+   12.6
+  ],
+  [
+   75.227,
+   12.614
+  ],
+  [
+   75.183,
+   12.597
+  ],
+  [
+   75.148,
+   12.634
+  ],
+  [
+   75.11,
+   12.631
+  ],
+  [
+   75.101,
+   12.683
+  ],
+  [
+   75.06,
+   12.703
+  ],
+  [
+   75.008,
+   12.692
+  ],
+  [
+   75.002,
+   12.717
+  ],
+  [
+   74.958,
+   12.732
+  ],
+  [
+   74.946,
+   12.775
+  ],
+  [
+   74.856,
+   12.766
+  ],
+  [
+   74.826,
+   12.838
+  ],
+  [
+   74.859,
+   12.824
+  ],
+  [
+   74.94,
+   12.879
+  ],
+  [
+   74.818,
+   12.861
+  ],
+  [
+   74.771,
+   13.051
+  ],
+  [
+   74.783,
+   13.086
+  ],
+  [
+   74.689,
+   13.382
+  ],
+  [
+   74.68,
+   13.468
+  ],
+  [
+   74.71,
+   13.413
+  ],
+  [
+   74.666,
+   13.632
+  ],
+  [
+   74.736,
+   13.655
+  ],
+  [
+   74.712,
+   13.655
+  ],
+  [
+   74.689,
+   13.712
+  ],
+  [
+   74.66,
+   13.661
+  ],
+  [
+   74.616,
+   13.836
+  ],
+  [
+   74.496,
+   14.031
+  ],
+  [
+   74.467,
+   14.181
+  ],
+  [
+   74.429,
+   14.241
+  ],
+  [
+   74.432,
+   14.264
+  ],
+  [
+   74.508,
+   14.25
+  ],
+  [
+   74.414,
+   14.302
+  ],
+  [
+   74.353,
+   14.506
+  ],
+  [
+   74.353,
+   14.529
+  ],
+  [
+   74.368,
+   14.512
+  ],
+  [
+   74.388,
+   14.463
+  ],
+  [
+   74.409,
+   14.463
+  ],
+  [
+   74.4,
+   14.48
+  ],
+  [
+   74.429,
+   14.477
+  ],
+  [
+   74.373,
+   14.529
+  ],
+  [
+   74.379,
+   14.543
+  ],
+  [
+   74.359,
+   14.543
+  ],
+  [
+   74.359,
+   14.572
+  ],
+  [
+   74.338,
+   14.523
+  ],
+  [
+   74.3,
+   14.526
+  ],
+  [
+   74.295,
+   14.586
+  ],
+  [
+   74.338,
+   14.612
+  ],
+  [
+   74.277,
+   14.609
+  ],
+  [
+   74.254,
+   14.719
+  ],
+  [
+   74.222,
+   14.739
+  ],
+  [
+   74.195,
+   14.716
+  ],
+  [
+   74.09,
+   14.811
+  ],
+  [
+   74.11,
+   14.802
+  ],
+  [
+   74.128,
+   14.837
+  ],
+  [
+   74.16,
+   14.825
+  ],
+  [
+   74.178,
+   14.857
+  ],
+  [
+   74.233,
+   14.865
+  ],
+  [
+   74.207,
+   14.9
+  ],
+  [
+   74.11,
+   14.845
+  ],
+  [
+   74.09,
+   14.888
+  ],
+  [
+   74.245,
+   14.96
+  ],
+  [
+   74.268,
+   15.041
+  ],
+  [
+   74.26,
+   15.098
+  ],
+  [
+   74.292,
+   15.196
+  ],
+  [
+   74.248,
+   15.225
+  ],
+  [
+   74.242,
+   15.253
+  ],
+  [
+   74.303,
+   15.279
+  ],
+  [
+   74.298,
+   15.337
+  ],
+  [
+   74.262,
+   15.377
+  ],
+  [
+   74.26,
+   15.429
+  ],
+  [
+   74.239,
+   15.455
+  ],
+  [
+   74.257,
+   15.518
+  ],
+  [
+   74.239,
+   15.616
+  ],
+  [
+   74.178,
+   15.653
+  ],
+  [
+   74.116,
+   15.636
+  ],
+  [
+   74.093,
+   15.67
+  ],
+  [
+   74.186,
+   15.765
+  ],
+  [
+   74.213,
+   15.765
+  ],
+  [
+   74.224,
+   15.725
+  ],
+  [
+   74.295,
+   15.734
+  ],
+  [
+   74.333,
+   15.762
+  ],
+  [
+   74.373,
+   15.834
+  ],
+  [
+   74.353,
+   15.872
+  ],
+  [
+   74.429,
+   15.992
+  ],
+  [
+   74.432,
+   16.041
+  ],
+  [
+   74.382,
+   16.07
+  ],
+  [
+   74.47,
+   16.11
+  ],
+  [
+   74.467,
+   16.243
+  ],
+  [
+   74.368,
+   16.294
+  ],
+  [
+   74.324,
+   16.283
+  ],
+  [
+   74.303,
+   16.369
+  ],
+  [
+   74.359,
+   16.401
+  ],
+  [
+   74.324,
+   16.424
+  ],
+  [
+   74.312,
+   16.458
+  ],
+  [
+   74.28,
+   16.461
+  ],
+  [
+   74.268,
+   16.496
+  ],
+  [
+   74.227,
+   16.484
+  ],
+  [
+   74.248,
+   16.544
+  ],
+  [
+   74.292,
+   16.527
+  ],
+  [
+   74.315,
+   16.565
+  ],
+  [
+   74.353,
+   16.544
+  ],
+  [
+   74.411,
+   16.593
+  ],
+  [
+   74.435,
+   16.648
+  ],
+  [
+   74.525,
+   16.625
+  ],
+  [
+   74.558,
+   16.55
+  ],
+  [
+   74.622,
+   16.596
+  ],
+  [
+   74.666,
+   16.605
+  ],
+  [
+   74.672,
+   16.625
+  ],
+  [
+   74.645,
+   16.651
+  ],
+  [
+   74.689,
+   16.714
+  ],
+  [
+   74.806,
+   16.769
+  ],
+  [
+   74.859,
+   16.757
+  ],
+  [
+   74.844,
+   16.858
+  ],
+  [
+   74.923,
+   16.89
+  ],
+  [
+   74.964,
+   16.956
+  ],
+  [
+   75.049,
+   16.953
+  ],
+  [
+   75.119,
+   16.881
+  ],
+  [
+   75.165,
+   16.869
+  ],
+  [
+   75.241,
+   16.901
+  ],
+  [
+   75.256,
+   16.959
+  ],
+  [
+   75.37,
+   16.984
+  ],
+  [
+   75.425,
+   16.984
+  ],
+  [
+   75.461,
+   16.961
+  ],
+  [
+   75.51,
+   16.976
+  ],
+  [
+   75.548,
+   17.016
+  ],
+  [
+   75.627,
+   16.976
+  ],
+  [
+   75.642,
+   17.019
+  ],
+  [
+   75.621,
+   17.053
+  ],
+  [
+   75.648,
+   17.091
+  ],
+  [
+   75.604,
+   17.157
+  ],
+  [
+   75.621,
+   17.243
+  ],
+  [
+   75.577,
+   17.298
+  ],
+  [
+   75.551,
+   17.39
+  ],
+  [
+   75.621,
+   17.476
+  ],
+  [
+   75.659,
+   17.467
+  ],
+  [
+   75.677,
+   17.424
+  ],
+  [
+   75.741,
+   17.416
+  ],
+  [
+   75.77,
+   17.378
+  ],
+  [
+   75.832,
+   17.416
+  ],
+  [
+   75.846,
+   17.401
+  ],
+  [
+   75.878,
+   17.413
+  ],
+  [
+   75.899,
+   17.352
+  ],
+  [
+   75.937,
+   17.327
+  ],
+  [
+   76.095,
+   17.378
+  ],
+  [
+   76.156,
+   17.37
+  ],
+  [
+   76.212,
+   17.39
+  ],
+  [
+   76.264,
+   17.358
+  ],
+  [
+   76.355,
+   17.358
+  ],
+  [
+   76.381,
+   17.378
+  ],
+  [
+   76.317,
+   17.473
+  ],
+  [
+   76.34,
+   17.522
+  ],
+  [
+   76.314,
+   17.608
+  ],
+  [
+   76.39,
+   17.637
+  ],
+  [
+   76.463,
+   17.697
+  ],
+  [
+   76.469,
+   17.732
+  ],
+  [
+   76.521,
+   17.778
+  ],
+  [
+   76.6,
+   17.766
+  ],
+  [
+   76.676,
+   17.706
+  ],
+  [
+   76.705,
+   17.792
+  ],
+  [
+   76.758,
+   17.835
+  ],
+  [
+   76.74,
+   17.899
+  ],
+  [
+   76.84,
+   17.884
+  ],
+  [
+   76.878,
+   17.933
+  ],
+  [
+   76.901,
+   18.158
+  ],
+  [
+   76.951,
+   18.181
+  ],
+  [
+   77.088,
+   18.198
+  ],
+  [
+   77.117,
+   18.255
+  ],
+  [
+   77.223,
+   18.313
+  ],
+  [
+   77.231,
+   18.411
+  ],
+  [
+   77.264,
+   18.454
+  ],
+  [
+   77.325,
+   18.448
+  ],
+  [
+   77.342,
+   18.425
+  ],
+  [
+   77.345,
+   18.35
+  ],
+  [
+   77.421,
+   18.321
+  ],
+  [
+   77.439,
+   18.281
+  ],
+  [
+   77.509,
+   18.316
+  ]
+ ],
+ "buses": [
+  {
+   "id": "NEL",
+   "name": "Nelamangala 400 kV",
+   "lon": 77.39,
+   "lat": 13.1,
+   "kv": 400,
+   "discom": "BESCOM",
+   "loadShare": 0.1,
+   "region": "BENGALURU"
+  },
+  {
+   "id": "SOM",
+   "name": "Somanahalli 400 kV",
+   "lon": 77.5,
+   "lat": 12.83,
+   "kv": 400,
+   "discom": "BESCOM",
+   "loadShare": 0.13,
+   "region": "BENGALURU"
+  },
+  {
+   "id": "HOO",
+   "name": "Hoody 400 kV",
+   "lon": 77.71,
+   "lat": 12.99,
+   "kv": 400,
+   "discom": "BESCOM",
+   "loadShare": 0.12,
+   "region": "BENGALURU"
+  },
+  {
+   "id": "TUM",
+   "name": "Tumakuru (Vasanthanarasapura) 400 kV",
+   "lon": 77.1,
+   "lat": 13.33,
+   "kv": 400,
+   "discom": "BESCOM",
+   "loadShare": 0.04,
+   "region": "CENTRAL"
+  },
+  {
+   "id": "KOL",
+   "name": "Kolar 400 kV (HVDC)",
+   "lon": 78.13,
+   "lat": 13.14,
+   "kv": 400,
+   "discom": "BESCOM",
+   "loadShare": 0.04,
+   "region": "BENGALURU"
+  },
+  {
+   "id": "PVG",
+   "name": "Pavagada Solar Park 400 kV",
+   "lon": 77.28,
+   "lat": 14.1,
+   "kv": 400,
+   "discom": "BESCOM",
+   "loadShare": 0.01,
+   "region": "CENTRAL"
+  },
+  {
+   "id": "CTD",
+   "name": "Chitradurga (Hiriyur) 400 kV",
+   "lon": 76.4,
+   "lat": 14.23,
+   "kv": 400,
+   "discom": "BESCOM",
+   "loadShare": 0.03,
+   "region": "CENTRAL"
+  },
+  {
+   "id": "DVG",
+   "name": "Davanagere (Guttur) 400 kV",
+   "lon": 75.85,
+   "lat": 14.45,
+   "kv": 400,
+   "discom": "BESCOM",
+   "loadShare": 0.03,
+   "region": "CENTRAL"
+  },
+  {
+   "id": "SMG",
+   "name": "Shivamogga 220 kV",
+   "lon": 75.57,
+   "lat": 13.93,
+   "kv": 220,
+   "discom": "MESCOM",
+   "loadShare": 0.03,
+   "region": "CENTRAL"
+  },
+  {
+   "id": "TLG",
+   "name": "Talaguppa 400 kV (Sharavathi)",
+   "lon": 74.9,
+   "lat": 14.2,
+   "kv": 400,
+   "discom": "MESCOM",
+   "loadShare": 0.005,
+   "region": "COASTAL"
+  },
+  {
+   "id": "MNG",
+   "name": "Mangaluru (Nandikur) 400 kV",
+   "lon": 74.8,
+   "lat": 13.13,
+   "kv": 400,
+   "discom": "MESCOM",
+   "loadShare": 0.05,
+   "region": "COASTAL"
+  },
+  {
+   "id": "HAS",
+   "name": "Hassan (Shantigrama) 400 kV",
+   "lon": 76.18,
+   "lat": 13,
+   "kv": 400,
+   "discom": "CESC",
+   "loadShare": 0.04,
+   "region": "SOUTH"
+  },
+  {
+   "id": "MYS",
+   "name": "Mysuru (Kadakola) 400 kV",
+   "lon": 76.62,
+   "lat": 12.2,
+   "kv": 400,
+   "discom": "CESC",
+   "loadShare": 0.07,
+   "region": "SOUTH"
+  },
+  {
+   "id": "NAR",
+   "name": "Narendra (Hubballi) 400 kV",
+   "lon": 75.05,
+   "lat": 15.4,
+   "kv": 400,
+   "discom": "HESCOM",
+   "loadShare": 0.06,
+   "region": "NORTH"
+  },
+  {
+   "id": "KGA",
+   "name": "Kaiga 220 kV",
+   "lon": 74.44,
+   "lat": 14.86,
+   "kv": 220,
+   "discom": "HESCOM",
+   "loadShare": 0.005,
+   "region": "COASTAL"
+  },
+  {
+   "id": "NGJ",
+   "name": "Nagjhari 220 kV",
+   "lon": 74.6,
+   "lat": 15.15,
+   "kv": 220,
+   "discom": "HESCOM",
+   "loadShare": 0.005,
+   "region": "NORTH"
+  },
+  {
+   "id": "BGM",
+   "name": "Belagavi 400 kV",
+   "lon": 74.5,
+   "lat": 15.85,
+   "kv": 400,
+   "discom": "HESCOM",
+   "loadShare": 0.05,
+   "region": "NORTH"
+  },
+  {
+   "id": "GAD",
+   "name": "Gadag 220 kV",
+   "lon": 75.63,
+   "lat": 15.43,
+   "kv": 220,
+   "discom": "HESCOM",
+   "loadShare": 0.02,
+   "region": "NORTH"
+  },
+  {
+   "id": "VJP",
+   "name": "Vijayapura 400 kV",
+   "lon": 75.71,
+   "lat": 16.83,
+   "kv": 400,
+   "discom": "HESCOM",
+   "loadShare": 0.04,
+   "region": "NORTH"
+  },
+  {
+   "id": "KDG",
+   "name": "Kudgi 400 kV (NTPC)",
+   "lon": 75.88,
+   "lat": 16.5,
+   "kv": 400,
+   "discom": "HESCOM",
+   "loadShare": 0,
+   "region": "NORTH"
+  },
+  {
+   "id": "BLY",
+   "name": "Ballari (Kudithini) 400 kV",
+   "lon": 76.75,
+   "lat": 15.2,
+   "kv": 400,
+   "discom": "GESCOM",
+   "loadShare": 0.05,
+   "region": "NORTH"
+  },
+  {
+   "id": "RCH",
+   "name": "Raichur 400 kV (RTPS/YTPS)",
+   "lon": 77.35,
+   "lat": 16.35,
+   "kv": 400,
+   "discom": "GESCOM",
+   "loadShare": 0.03,
+   "region": "NORTH"
+  },
+  {
+   "id": "GUL",
+   "name": "Kalaburagi 400 kV",
+   "lon": 76.83,
+   "lat": 17.33,
+   "kv": 400,
+   "discom": "GESCOM",
+   "loadShare": 0.04,
+   "region": "NORTH"
+  },
+  {
+   "id": "BDR",
+   "name": "Bidar 220 kV",
+   "lon": 77.52,
+   "lat": 17.91,
+   "kv": 220,
+   "discom": "GESCOM",
+   "loadShare": 0.02,
+   "region": "NORTH"
+  },
+  {
+   "id": "X_SHO",
+   "name": "WR \u00b7 Sholapur 765 kV",
+   "lon": 76.05,
+   "lat": 17.85,
+   "kv": 765,
+   "loadShare": 0,
+   "external": true,
+   "participation": 0.24
+  },
+  {
+   "id": "X_KLP",
+   "name": "WR \u00b7 Kolhapur 765 kV",
+   "lon": 74.15,
+   "lat": 16.75,
+   "kv": 765,
+   "loadShare": 0,
+   "external": true,
+   "participation": 0.12
+  },
+  {
+   "id": "X_TAL",
+   "name": "ER \u00b7 Talcher\u2013Kolar HVDC",
+   "lon": 78.95,
+   "lat": 13.75,
+   "kv": 400,
+   "loadShare": 0,
+   "external": true,
+   "participation": 0.26
+  },
+  {
+   "id": "X_KNL",
+   "name": "SR \u00b7 Kurnool (AP) 765 kV",
+   "lon": 78.1,
+   "lat": 15.85,
+   "kv": 765,
+   "loadShare": 0,
+   "external": true,
+   "participation": 0.18
+  },
+  {
+   "id": "X_HSR",
+   "name": "SR \u00b7 Hosur (TN) 400 kV",
+   "lon": 77.95,
+   "lat": 12.5,
+   "kv": 400,
+   "loadShare": 0,
+   "external": true,
+   "participation": 0.14
+  },
+  {
+   "id": "X_KZK",
+   "name": "SR \u00b7 Kozhikode (Kerala) 400 kV",
+   "lon": 75.85,
+   "lat": 11.35,
+   "kv": 400,
+   "loadShare": 0,
+   "external": true,
+   "participation": 0.06
+  }
+ ],
+ "lines": [
+  {
+   "id": "L1",
+   "from": "NEL",
+   "to": "SOM",
+   "kv": 400,
+   "limitMW": 1600
+  },
+  {
+   "id": "L2",
+   "from": "NEL",
+   "to": "HOO",
+   "kv": 400,
+   "limitMW": 1500
+  },
+  {
+   "id": "L3",
+   "from": "SOM",
+   "to": "HOO",
+   "kv": 400,
+   "limitMW": 1150
+  },
+  {
+   "id": "L4",
+   "from": "HOO",
+   "to": "KOL",
+   "kv": 400,
+   "limitMW": 1200
+  },
+  {
+   "id": "L5",
+   "from": "KOL",
+   "to": "X_TAL",
+   "kv": 400,
+   "limitMW": 2300,
+   "hvdc": true,
+   "name": "Talcher\u2013Kolar HVDC"
+  },
+  {
+   "id": "L6",
+   "from": "SOM",
+   "to": "X_HSR",
+   "kv": 400,
+   "limitMW": 1250
+  },
+  {
+   "id": "L7",
+   "from": "TUM",
+   "to": "NEL",
+   "kv": 400,
+   "limitMW": 4800
+  },
+  {
+   "id": "L8",
+   "from": "PVG",
+   "to": "TUM",
+   "kv": 400,
+   "limitMW": 3700
+  },
+  {
+   "id": "L9",
+   "from": "CTD",
+   "to": "TUM",
+   "kv": 400,
+   "limitMW": 3550
+  },
+  {
+   "id": "L10",
+   "from": "CTD",
+   "to": "PVG",
+   "kv": 400,
+   "limitMW": 1250
+  },
+  {
+   "id": "L11",
+   "from": "BLY",
+   "to": "CTD",
+   "kv": 400,
+   "limitMW": 3900
+  },
+  {
+   "id": "L12",
+   "from": "RCH",
+   "to": "BLY",
+   "kv": 400,
+   "limitMW": 3100
+  },
+  {
+   "id": "L13",
+   "from": "RCH",
+   "to": "GUL",
+   "kv": 400,
+   "limitMW": 2050
+  },
+  {
+   "id": "L14",
+   "from": "RCH",
+   "to": "X_SHO",
+   "kv": 765,
+   "limitMW": 2150,
+   "name": "Raichur\u2013Sholapur 765 kV"
+  },
+  {
+   "id": "L15",
+   "from": "RCH",
+   "to": "X_KNL",
+   "kv": 765,
+   "limitMW": 1600,
+   "name": "Raichur\u2013Kurnool 765 kV"
+  },
+  {
+   "id": "L16",
+   "from": "GUL",
+   "to": "BDR",
+   "kv": 220,
+   "limitMW": 550
+  },
+  {
+   "id": "L17",
+   "from": "GUL",
+   "to": "VJP",
+   "kv": 400,
+   "limitMW": 700
+  },
+  {
+   "id": "L18",
+   "from": "VJP",
+   "to": "KDG",
+   "kv": 400,
+   "limitMW": 700
+  },
+  {
+   "id": "L19",
+   "from": "KDG",
+   "to": "NAR",
+   "kv": 400,
+   "limitMW": 2600
+  },
+  {
+   "id": "L20",
+   "from": "NAR",
+   "to": "X_KLP",
+   "kv": 765,
+   "limitMW": 1500,
+   "name": "Narendra\u2013Kolhapur 765 kV"
+  },
+  {
+   "id": "L21",
+   "from": "BGM",
+   "to": "NAR",
+   "kv": 400,
+   "limitMW": 1000
+  },
+  {
+   "id": "L22",
+   "from": "BGM",
+   "to": "X_KLP",
+   "kv": 220,
+   "limitMW": 350
+  },
+  {
+   "id": "L23",
+   "from": "NAR",
+   "to": "GAD",
+   "kv": 220,
+   "limitMW": 550
+  },
+  {
+   "id": "L24",
+   "from": "GAD",
+   "to": "BLY",
+   "kv": 220,
+   "limitMW": 450
+  },
+  {
+   "id": "L25",
+   "from": "NAR",
+   "to": "NGJ",
+   "kv": 220,
+   "limitMW": 350
+  },
+  {
+   "id": "L26",
+   "from": "NGJ",
+   "to": "KGA",
+   "kv": 220,
+   "limitMW": 350
+  },
+  {
+   "id": "L27",
+   "from": "KGA",
+   "to": "TLG",
+   "kv": 220,
+   "limitMW": 1450
+  },
+  {
+   "id": "L28",
+   "from": "NAR",
+   "to": "DVG",
+   "kv": 400,
+   "limitMW": 2350
+  },
+  {
+   "id": "L29",
+   "from": "DVG",
+   "to": "CTD",
+   "kv": 400,
+   "limitMW": 700
+  },
+  {
+   "id": "L30",
+   "from": "DVG",
+   "to": "TLG",
+   "kv": 400,
+   "limitMW": 750
+  },
+  {
+   "id": "L31",
+   "from": "TLG",
+   "to": "SMG",
+   "kv": 220,
+   "limitMW": 600
+  },
+  {
+   "id": "L32",
+   "from": "SMG",
+   "to": "DVG",
+   "kv": 220,
+   "limitMW": 1100
+  },
+  {
+   "id": "L33",
+   "from": "TLG",
+   "to": "HAS",
+   "kv": 400,
+   "limitMW": 2150
+  },
+  {
+   "id": "L34",
+   "from": "MNG",
+   "to": "HAS",
+   "kv": 400,
+   "limitMW": 700
+  },
+  {
+   "id": "L35",
+   "from": "HAS",
+   "to": "NEL",
+   "kv": 400,
+   "limitMW": 750
+  },
+  {
+   "id": "L36",
+   "from": "HAS",
+   "to": "MYS",
+   "kv": 400,
+   "limitMW": 1200
+  },
+  {
+   "id": "L37",
+   "from": "MYS",
+   "to": "SOM",
+   "kv": 400,
+   "limitMW": 700
+  },
+  {
+   "id": "L38",
+   "from": "MYS",
+   "to": "X_KZK",
+   "kv": 400,
+   "limitMW": 700
+  },
+  {
+   "id": "L39",
+   "from": "SMG",
+   "to": "HAS",
+   "kv": 220,
+   "limitMW": 900
+  },
+  {
+   "id": "L40",
+   "from": "KOL",
+   "to": "X_HSR",
+   "kv": 400,
+   "limitMW": 1000,
+   "name": "Kolar\u2013Hosur 400 kV"
+  }
+ ],
+ "generators": [
+  {
+   "id": "G_RTPS",
+   "name": "Raichur TPS (KPCL)",
+   "bus": "RCH",
+   "type": "coal",
+   "capacityMW": 1720,
+   "baseMW": 1000,
+   "owner": "State",
+   "lon": 77.36,
+   "lat": 16.36
+  },
+  {
+   "id": "G_YTPS",
+   "name": "Yermarus TPS (KPCL)",
+   "bus": "RCH",
+   "type": "coal",
+   "capacityMW": 1600,
+   "baseMW": 900,
+   "owner": "State",
+   "lon": 77.3,
+   "lat": 16.24
+  },
+  {
+   "id": "G_BTPS",
+   "name": "Ballari TPS (KPCL)",
+   "bus": "BLY",
+   "type": "coal",
+   "capacityMW": 1700,
+   "baseMW": 1000,
+   "owner": "State",
+   "lon": 76.78,
+   "lat": 15.24
+  },
+  {
+   "id": "G_UPCL",
+   "name": "Udupi Power (UPCL)",
+   "bus": "MNG",
+   "type": "coal",
+   "capacityMW": 1200,
+   "baseMW": 800,
+   "owner": "IPP",
+   "lon": 74.76,
+   "lat": 13.17
+  },
+  {
+   "id": "G_KDG",
+   "name": "NTPC Kudgi STPP",
+   "bus": "KDG",
+   "type": "coal",
+   "capacityMW": 2400,
+   "baseMW": 1800,
+   "owner": "Central",
+   "lon": 75.9,
+   "lat": 16.48
+  },
+  {
+   "id": "G_SHV",
+   "name": "Sharavathi Hydro",
+   "bus": "TLG",
+   "type": "hydro",
+   "capacityMW": 1035,
+   "baseMW": 700,
+   "owner": "State",
+   "lon": 74.81,
+   "lat": 14.24
+  },
+  {
+   "id": "G_NGJ",
+   "name": "Nagjhari (Kali) Hydro",
+   "bus": "NGJ",
+   "type": "hydro",
+   "capacityMW": 855,
+   "baseMW": 400,
+   "owner": "State",
+   "lon": 74.57,
+   "lat": 15.17
+  },
+  {
+   "id": "G_KGA",
+   "name": "Kaiga Atomic Power",
+   "bus": "KGA",
+   "type": "nuclear",
+   "capacityMW": 880,
+   "baseMW": 800,
+   "owner": "Central",
+   "lon": 74.44,
+   "lat": 14.86
+  },
+  {
+   "id": "G_PVG",
+   "name": "Pavagada Solar Park",
+   "bus": "PVG",
+   "type": "solar",
+   "capacityMW": 2050,
+   "baseMW": 1700,
+   "owner": "IPP",
+   "lon": 77.31,
+   "lat": 14.16
+  },
+  {
+   "id": "G_BSOL",
+   "name": "Ballari\u2013Koppal Solar Cluster",
+   "bus": "BLY",
+   "type": "solar",
+   "capacityMW": 1100,
+   "baseMW": 900,
+   "owner": "IPP",
+   "lon": 76.3,
+   "lat": 15.4
+  },
+  {
+   "id": "G_VSOL",
+   "name": "Vijayapura\u2013Kalaburagi Solar",
+   "bus": "VJP",
+   "type": "solar",
+   "capacityMW": 1000,
+   "baseMW": 800,
+   "owner": "IPP",
+   "lon": 76.2,
+   "lat": 16.95
+  },
+  {
+   "id": "G_CWND",
+   "name": "Chitradurga Wind Cluster",
+   "bus": "CTD",
+   "type": "wind",
+   "capacityMW": 1400,
+   "baseMW": 500,
+   "owner": "IPP",
+   "lon": 76.55,
+   "lat": 14.05
+  },
+  {
+   "id": "G_GWND",
+   "name": "Gadag Wind Cluster",
+   "bus": "GAD",
+   "type": "wind",
+   "capacityMW": 1100,
+   "baseMW": 400,
+   "owner": "IPP",
+   "lon": 75.75,
+   "lat": 15.25
+  }
+ ],
+ "assets": [
+  {
+   "id": "A_YTPS",
+   "name": "YTPS ramp-up headroom",
+   "short": "YTPS \u2191",
+   "type": "generation",
+   "discom": "KPCL",
+   "bus": "RCH",
+   "lon": 77.3,
+   "lat": 16.24,
+   "baselineMW": 900,
+   "minLoadMW": 880,
+   "maxLoadMW": 1600,
+   "contractMW": 300,
+   "reserve": {
+    "state": 300,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 5,
+   "rampMWpm": 12,
+   "maxDurationMin": 600,
+   "recoveryMin": 0,
+   "reboundFrac": 0,
+   "bidRs": 4.1,
+   "opportunityRs": 0,
+   "reliability": 0.97,
+   "telemetryOk": true,
+   "protocol": "ICCP",
+   "description": "Coal unit re-dispatch within spinning headroom (variable cost \u20b94.1/kWh)."
+  },
+  {
+   "id": "A_SHV",
+   "name": "Sharavathi hydro peaking",
+   "short": "Sharavathi \u2191",
+   "type": "generation",
+   "discom": "KPCL",
+   "bus": "TLG",
+   "lon": 74.81,
+   "lat": 14.24,
+   "baselineMW": 700,
+   "minLoadMW": 300,
+   "maxLoadMW": 1035,
+   "contractMW": 250,
+   "reserve": {
+    "state": 150,
+    "sras": 100,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 2,
+   "rampMWpm": 60,
+   "maxDurationMin": 240,
+   "recoveryMin": 0,
+   "reboundFrac": 0,
+   "bidRs": 5.6,
+   "opportunityRs": 0.6,
+   "reliability": 0.99,
+   "telemetryOk": true,
+   "protocol": "IEC-104",
+   "description": "Fast hydro peaking; water value \u20b95.6/kWh. 100 MW held for SRAS."
+  },
+  {
+   "id": "A_PBESS",
+   "name": "Pavagada Grid BESS",
+   "short": "Pavagada BESS",
+   "type": "bess",
+   "discom": "BESCOM",
+   "bus": "PVG",
+   "lon": 77.24,
+   "lat": 14.12,
+   "baselineMW": 0,
+   "minLoadMW": -150,
+   "maxLoadMW": 150,
+   "contractMW": 150,
+   "reserve": {
+    "state": 90,
+    "sras": 40,
+    "tras": 20,
+    "emergency": 0
+   },
+   "responseMin": 0.2,
+   "rampMWpm": 150,
+   "maxDurationMin": 120,
+   "recoveryMin": 0,
+   "reboundFrac": 0,
+   "bidRs": 1.4,
+   "opportunityRs": 3.4,
+   "reliability": 0.99,
+   "telemetryOk": true,
+   "protocol": "IEC-104",
+   "bess": {
+    "energyMWh": 300,
+    "soc": 0.78,
+    "socMin": 0.1,
+    "socMax": 0.95,
+    "etaC": 0.94,
+    "etaD": 0.94,
+    "degRs": 1.4
+   },
+   "description": "150 MW / 300 MWh grid-forming BESS co-located with the solar park."
+  },
+  {
+   "id": "A_HBESS",
+   "name": "Hoody Substation BESS",
+   "short": "Hoody BESS",
+   "type": "bess",
+   "discom": "BESCOM",
+   "bus": "HOO",
+   "lon": 77.73,
+   "lat": 12.97,
+   "baselineMW": 0,
+   "minLoadMW": -75,
+   "maxLoadMW": 75,
+   "contractMW": 75,
+   "reserve": {
+    "state": 60,
+    "sras": 15,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 0.2,
+   "rampMWpm": 75,
+   "maxDurationMin": 120,
+   "recoveryMin": 0,
+   "reboundFrac": 0,
+   "bidRs": 1.5,
+   "opportunityRs": 3.4,
+   "reliability": 0.99,
+   "telemetryOk": true,
+   "protocol": "IEC-104",
+   "bess": {
+    "energyMWh": 150,
+    "soc": 0.64,
+    "socMin": 0.1,
+    "socMax": 0.95,
+    "etaC": 0.94,
+    "etaD": 0.94,
+    "degRs": 1.5
+   },
+   "description": "Urban BESS relieving the Bengaluru 400 kV ring."
+  },
+  {
+   "id": "A_GBESS",
+   "name": "Gadag Hybrid BESS",
+   "short": "Gadag BESS",
+   "type": "bess",
+   "discom": "HESCOM",
+   "bus": "GAD",
+   "lon": 75.7,
+   "lat": 15.35,
+   "baselineMW": 0,
+   "minLoadMW": -50,
+   "maxLoadMW": 50,
+   "contractMW": 50,
+   "reserve": {
+    "state": 50,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 0.2,
+   "rampMWpm": 50,
+   "maxDurationMin": 120,
+   "recoveryMin": 0,
+   "reboundFrac": 0,
+   "bidRs": 1.6,
+   "opportunityRs": 3.4,
+   "reliability": 0.98,
+   "telemetryOk": true,
+   "protocol": "Modbus TCP",
+   "bess": {
+    "energyMWh": 100,
+    "soc": 0.31,
+    "socMin": 0.1,
+    "socMax": 0.95,
+    "etaC": 0.93,
+    "etaD": 0.93,
+    "degRs": 1.6
+   },
+   "description": "Wind-hybrid storage, currently at low SoC after morning firming."
+  },
+  {
+   "id": "A_ECDC",
+   "name": "Electronic City data-centre UPS/BESS",
+   "short": "E-City DC",
+   "type": "der",
+   "discom": "BESCOM",
+   "bus": "SOM",
+   "lon": 77.67,
+   "lat": 12.84,
+   "baselineMW": 42,
+   "minLoadMW": 22,
+   "maxLoadMW": 42,
+   "contractMW": 20,
+   "reserve": {
+    "state": 20,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 0.5,
+   "rampMWpm": 20,
+   "maxDurationMin": 60,
+   "recoveryMin": 60,
+   "reboundFrac": 0.95,
+   "bidRs": 3.8,
+   "opportunityRs": 0.4,
+   "reliability": 0.96,
+   "telemetryOk": true,
+   "protocol": "OpenADR 3",
+   "description": "Data-centre shifts to on-site UPS/BESS; recharges after the event."
+  },
+  {
+   "id": "A_BWSSB",
+   "name": "BWSSB Cauvery pumping (T.K. Halli)",
+   "short": "Cauvery pumping",
+   "type": "interruptible",
+   "discom": "BESCOM",
+   "bus": "SOM",
+   "lon": 77.03,
+   "lat": 12.4,
+   "baselineMW": 105,
+   "minLoadMW": 30,
+   "maxLoadMW": 110,
+   "contractMW": 70,
+   "reserve": {
+    "state": 60,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 10
+   },
+   "responseMin": 3,
+   "rampMWpm": 25,
+   "maxDurationMin": 120,
+   "recoveryMin": 180,
+   "reboundFrac": 0.6,
+   "bidRs": 2.2,
+   "opportunityRs": 0.3,
+   "reliability": 0.96,
+   "telemetryOk": true,
+   "protocol": "IEC-104",
+   "description": "Water pumping stages can pause; reservoirs buffer supply. Pumps catch up later (rebound)."
+  },
+  {
+   "id": "A_WFLD",
+   "name": "Whitefield IT parks HVAC",
+   "short": "Whitefield HVAC",
+   "type": "interruptible",
+   "discom": "BESCOM",
+   "bus": "HOO",
+   "lon": 77.75,
+   "lat": 12.97,
+   "baselineMW": 88,
+   "minLoadMW": 50,
+   "maxLoadMW": 95,
+   "contractMW": 35,
+   "reserve": {
+    "state": 30,
+    "sras": 0,
+    "tras": 5,
+    "emergency": 0
+   },
+   "responseMin": 2,
+   "rampMWpm": 20,
+   "maxDurationMin": 60,
+   "recoveryMin": 90,
+   "reboundFrac": 0.5,
+   "bidRs": 3,
+   "opportunityRs": 0.5,
+   "reliability": 0.9,
+   "telemetryOk": true,
+   "protocol": "OpenADR 3",
+   "description": "Chiller setpoint +1.5 \u00b0C across 14 campuses via BMS."
+  },
+  {
+   "id": "A_HSKT",
+   "name": "Hoskote cold-storage cluster",
+   "short": "Hoskote cold",
+   "type": "interruptible",
+   "discom": "BESCOM",
+   "bus": "HOO",
+   "lon": 77.8,
+   "lat": 13.07,
+   "baselineMW": 22,
+   "minLoadMW": 6,
+   "maxLoadMW": 24,
+   "contractMW": 15,
+   "reserve": {
+    "state": 15,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 1,
+   "rampMWpm": 15,
+   "maxDurationMin": 45,
+   "recoveryMin": 60,
+   "reboundFrac": 0.7,
+   "bidRs": 2,
+   "opportunityRs": 0.2,
+   "reliability": 0.95,
+   "telemetryOk": true,
+   "protocol": "OpenADR 3",
+   "description": "Compressors cycle off; thermal mass holds product temperature for 45 min."
+  },
+  {
+   "id": "A_KIAH",
+   "name": "Kempegowda Airport HVAC",
+   "short": "Airport HVAC",
+   "type": "interruptible",
+   "discom": "BESCOM",
+   "bus": "NEL",
+   "lon": 77.71,
+   "lat": 13.2,
+   "baselineMW": 26,
+   "minLoadMW": 16,
+   "maxLoadMW": 28,
+   "contractMW": 8,
+   "reserve": {
+    "state": 8,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 2,
+   "rampMWpm": 8,
+   "maxDurationMin": 60,
+   "recoveryMin": 60,
+   "reboundFrac": 0.5,
+   "bidRs": 3.2,
+   "opportunityRs": 0.6,
+   "reliability": 0.95,
+   "telemetryOk": true,
+   "protocol": "OpenADR 3",
+   "description": "Terminal chilled-water plant pre-cooling and setpoint relaxation."
+  },
+  {
+   "id": "A_UDPC",
+   "name": "Udupi\u2013Malpe fish cold chain",
+   "short": "Malpe cold chain",
+   "type": "interruptible",
+   "discom": "MESCOM",
+   "bus": "MNG",
+   "lon": 74.72,
+   "lat": 13.35,
+   "baselineMW": 18,
+   "minLoadMW": 5,
+   "maxLoadMW": 20,
+   "contractMW": 12,
+   "reserve": {
+    "state": 12,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 1,
+   "rampMWpm": 12,
+   "maxDurationMin": 45,
+   "recoveryMin": 60,
+   "reboundFrac": 0.7,
+   "bidRs": 2.1,
+   "opportunityRs": 0.2,
+   "reliability": 0.94,
+   "telemetryOk": true,
+   "protocol": "OpenADR 3",
+   "description": "Ice plants & blast freezers cycle off."
+  },
+  {
+   "id": "A_HAG",
+   "name": "HESCOM ag-pumping feeders (Vijayapura\u2013Bagalkot)",
+   "short": "HESCOM ag feeders",
+   "type": "shiftable",
+   "discom": "HESCOM",
+   "bus": "VJP",
+   "lon": 75.95,
+   "lat": 16.35,
+   "baselineMW": 420,
+   "minLoadMW": 260,
+   "maxLoadMW": 460,
+   "contractMW": 120,
+   "reserve": {
+    "state": 100,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 20
+   },
+   "responseMin": 2,
+   "rampMWpm": 60,
+   "maxDurationMin": 120,
+   "recoveryMin": 120,
+   "reboundFrac": 0.9,
+   "bidRs": 1.5,
+   "opportunityRs": 0.4,
+   "reliability": 0.93,
+   "telemetryOk": true,
+   "protocol": "IEC-104",
+   "description": "SCADA-switched ag feeders; the 7-hour supply window shifts, energy is returned later."
+  },
+  {
+   "id": "A_GAG",
+   "name": "GESCOM ag-pumping feeders (Raichur\u2013Koppal)",
+   "short": "GESCOM ag feeders",
+   "type": "shiftable",
+   "discom": "GESCOM",
+   "bus": "RCH",
+   "lon": 76.95,
+   "lat": 15.95,
+   "baselineMW": 310,
+   "minLoadMW": 200,
+   "maxLoadMW": 340,
+   "contractMW": 80,
+   "reserve": {
+    "state": 70,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 10
+   },
+   "responseMin": 2,
+   "rampMWpm": 40,
+   "maxDurationMin": 120,
+   "recoveryMin": 120,
+   "reboundFrac": 0.9,
+   "bidRs": 1.5,
+   "opportunityRs": 0.4,
+   "reliability": 0.92,
+   "telemetryOk": true,
+   "protocol": "IEC-104",
+   "description": "Feeder-level schedule shift on segregated agricultural feeders."
+  },
+  {
+   "id": "A_CAG",
+   "name": "CESC ag-pumping feeders (Hassan\u2013Mandya)",
+   "short": "CESC ag feeders",
+   "type": "shiftable",
+   "discom": "CESC",
+   "bus": "HAS",
+   "lon": 76.45,
+   "lat": 12.75,
+   "baselineMW": 220,
+   "minLoadMW": 150,
+   "maxLoadMW": 240,
+   "contractMW": 60,
+   "reserve": {
+    "state": 50,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 10
+   },
+   "responseMin": 2,
+   "rampMWpm": 30,
+   "maxDurationMin": 120,
+   "recoveryMin": 120,
+   "reboundFrac": 0.9,
+   "bidRs": 1.5,
+   "opportunityRs": 0.4,
+   "reliability": 0.91,
+   "telemetryOk": true,
+   "protocol": "IEC-104",
+   "description": "Feeder-level schedule shift on segregated agricultural feeders."
+  },
+  {
+   "id": "A_BMTC",
+   "name": "BMTC e-bus depots (smart charging)",
+   "short": "BMTC e-bus",
+   "type": "der",
+   "discom": "BESCOM",
+   "bus": "SOM",
+   "lon": 77.58,
+   "lat": 12.9,
+   "baselineMW": 24,
+   "minLoadMW": 4,
+   "maxLoadMW": 30,
+   "contractMW": 18,
+   "reserve": {
+    "state": 18,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 1,
+   "rampMWpm": 18,
+   "maxDurationMin": 90,
+   "recoveryMin": 120,
+   "reboundFrac": 1,
+   "bidRs": 1.8,
+   "opportunityRs": 0.1,
+   "reliability": 0.97,
+   "telemetryOk": true,
+   "protocol": "OpenADR 3",
+   "description": "Charging deferred to night window via OCPP/OpenADR gateway."
+  },
+  {
+   "id": "A_JSW",
+   "name": "Toranagallu steel complex",
+   "short": "Toranagallu steel",
+   "type": "industrial",
+   "discom": "GESCOM",
+   "bus": "BLY",
+   "lon": 76.67,
+   "lat": 15.18,
+   "baselineMW": 610,
+   "minLoadMW": 430,
+   "maxLoadMW": 650,
+   "contractMW": 150,
+   "reserve": {
+    "state": 100,
+    "sras": 0,
+    "tras": 50,
+    "emergency": 0
+   },
+   "responseMin": 10,
+   "rampMWpm": 15,
+   "maxDurationMin": 90,
+   "recoveryMin": 240,
+   "reboundFrac": 0.3,
+   "bidRs": 4.8,
+   "opportunityRs": 1.2,
+   "reliability": 0.88,
+   "telemetryOk": true,
+   "protocol": "IEC-104",
+   "description": "Arc-furnace heat scheduling + oxygen plant load trim. 50 MW sold to TRAS."
+  },
+  {
+   "id": "A_SDM",
+   "name": "Sedam cement cluster",
+   "short": "Sedam cement",
+   "type": "industrial",
+   "discom": "GESCOM",
+   "bus": "GUL",
+   "lon": 77.28,
+   "lat": 17.18,
+   "baselineMW": 145,
+   "minLoadMW": 80,
+   "maxLoadMW": 150,
+   "contractMW": 60,
+   "reserve": {
+    "state": 60,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 12,
+   "rampMWpm": 6,
+   "maxDurationMin": 120,
+   "recoveryMin": 180,
+   "reboundFrac": 0.8,
+   "bidRs": 3.6,
+   "opportunityRs": 0.8,
+   "reliability": 0.8,
+   "telemetryOk": true,
+   "protocol": "OPC UA",
+   "description": "Raw-mill & cement-mill stoppage (silos buffer clinker grinding)."
+  },
+  {
+   "id": "A_BGF",
+   "name": "Belagavi foundry cluster",
+   "short": "Belagavi foundry",
+   "type": "industrial",
+   "discom": "HESCOM",
+   "bus": "BGM",
+   "lon": 74.55,
+   "lat": 15.88,
+   "baselineMW": 68,
+   "minLoadMW": 35,
+   "maxLoadMW": 72,
+   "contractMW": 30,
+   "reserve": {
+    "state": 30,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 10,
+   "rampMWpm": 5,
+   "maxDurationMin": 60,
+   "recoveryMin": 120,
+   "reboundFrac": 0.6,
+   "bidRs": 4.2,
+   "opportunityRs": 1,
+   "reliability": 0.75,
+   "telemetryOk": true,
+   "protocol": "OpenADR 3",
+   "description": "Induction-furnace melt rescheduling across 40 foundries (aggregated)."
+  },
+  {
+   "id": "A_HDI",
+   "name": "Hubballi\u2013Dharwad industrial area",
+   "short": "Hubballi\u2013Dharwad ind.",
+   "type": "industrial",
+   "discom": "HESCOM",
+   "bus": "NAR",
+   "lon": 75.1,
+   "lat": 15.38,
+   "baselineMW": 54,
+   "minLoadMW": 30,
+   "maxLoadMW": 58,
+   "contractMW": 20,
+   "reserve": {
+    "state": 20,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 10,
+   "rampMWpm": 4,
+   "maxDurationMin": 60,
+   "recoveryMin": 90,
+   "reboundFrac": 0.5,
+   "bidRs": 3.8,
+   "opportunityRs": 0.7,
+   "reliability": 0.86,
+   "telemetryOk": true,
+   "protocol": "OpenADR 3",
+   "description": "Aggregated MSME loads via DR aggregator VEN."
+  },
+  {
+   "id": "A_PNY",
+   "name": "Peenya industrial cluster",
+   "short": "Peenya ind.",
+   "type": "industrial",
+   "discom": "BESCOM",
+   "bus": "NEL",
+   "lon": 77.52,
+   "lat": 13.03,
+   "baselineMW": 180,
+   "minLoadMW": 120,
+   "maxLoadMW": 190,
+   "contractMW": 45,
+   "reserve": {
+    "state": 45,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 8,
+   "rampMWpm": 6,
+   "maxDurationMin": 60,
+   "recoveryMin": 120,
+   "reboundFrac": 0.4,
+   "bidRs": 4.5,
+   "opportunityRs": 0.9,
+   "reliability": 0.82,
+   "telemetryOk": true,
+   "protocol": "OpenADR 3",
+   "description": "Aggregated machine-shop and plastics loads."
+  },
+  {
+   "id": "A_BDD",
+   "name": "Bidadi automotive cluster",
+   "short": "Bidadi auto",
+   "type": "industrial",
+   "discom": "BESCOM",
+   "bus": "SOM",
+   "lon": 77.39,
+   "lat": 12.8,
+   "baselineMW": 75,
+   "minLoadMW": 45,
+   "maxLoadMW": 80,
+   "contractMW": 25,
+   "reserve": {
+    "state": 25,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 15,
+   "rampMWpm": 3,
+   "maxDurationMin": 60,
+   "recoveryMin": 120,
+   "reboundFrac": 0.4,
+   "bidRs": 4,
+   "opportunityRs": 0.8,
+   "reliability": 0.85,
+   "telemetryOk": true,
+   "protocol": "OpenADR 3",
+   "description": "Paint-shop ovens and compressed air staging."
+  },
+  {
+   "id": "A_MSEZ",
+   "name": "Mangaluru SEZ process loads",
+   "short": "Mangaluru SEZ",
+   "type": "industrial",
+   "discom": "MESCOM",
+   "bus": "MNG",
+   "lon": 74.86,
+   "lat": 12.97,
+   "baselineMW": 120,
+   "minLoadMW": 80,
+   "maxLoadMW": 125,
+   "contractMW": 40,
+   "reserve": {
+    "state": 40,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 15,
+   "rampMWpm": 4,
+   "maxDurationMin": 90,
+   "recoveryMin": 180,
+   "reboundFrac": 0.3,
+   "bidRs": 4.6,
+   "opportunityRs": 1.1,
+   "reliability": 0.8,
+   "telemetryOk": true,
+   "protocol": "OPC UA",
+   "description": "Auxiliary process trims within captive-plant coordination."
+  },
+  {
+   "id": "A_NJG",
+   "name": "Nanjangud industrial area",
+   "short": "Nanjangud ind.",
+   "type": "industrial",
+   "discom": "CESC",
+   "bus": "MYS",
+   "lon": 76.68,
+   "lat": 12.12,
+   "baselineMW": 62,
+   "minLoadMW": 40,
+   "maxLoadMW": 65,
+   "contractMW": 22,
+   "reserve": {
+    "state": 22,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 10,
+   "rampMWpm": 4,
+   "maxDurationMin": 60,
+   "recoveryMin": 120,
+   "reboundFrac": 0.5,
+   "bidRs": 3.9,
+   "opportunityRs": 0.8,
+   "reliability": 0.84,
+   "telemetryOk": true,
+   "protocol": "OpenADR 3",
+   "description": "Pharma & FMCG utility loads (chillers, compressors)."
+  },
+  {
+   "id": "A_TMK",
+   "name": "Tumakuru (Vasanthanarasapura) industrial",
+   "short": "Tumakuru ind.",
+   "type": "industrial",
+   "discom": "BESCOM",
+   "bus": "TUM",
+   "lon": 77.15,
+   "lat": 13.4,
+   "baselineMW": 70,
+   "minLoadMW": 45,
+   "maxLoadMW": 75,
+   "contractMW": 28,
+   "reserve": {
+    "state": 28,
+    "sras": 0,
+    "tras": 0,
+    "emergency": 0
+   },
+   "responseMin": 10,
+   "rampMWpm": 4,
+   "maxDurationMin": 60,
+   "recoveryMin": 120,
+   "reboundFrac": 0.5,
+   "bidRs": 4.1,
+   "opportunityRs": 0.8,
+   "reliability": 0.83,
+   "telemetryOk": true,
+   "protocol": "OpenADR 3",
+   "description": "Industrial corridor flexible loads."
+  }
+ ]
+}

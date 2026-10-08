@@ -1,0 +1,1578 @@
+{
+ "version": 1,
+ "note": "Approximate town-level coordinates; parent_bus = nearest model bus in the same DISCOM. Edit via /api/v1/admin/channels.",
+ "sources": {
+  "discom_pages": [
+   "https://kptclsldc.in/bescom.aspx",
+   "https://kptclsldc.in/mescom.aspx",
+   "https://kptclsldc.in/hescom.aspx",
+   "https://kptclsldc.in/gescom.aspx",
+   "https://kptclsldc.in/cesc.aspx"
+  ],
+  "generation_page": "https://kptclsldc.in/StateGen.aspx"
+ },
+ "load_channels": [
+  {
+   "id": "LD_PEENYA",
+   "name": "Peenya",
+   "discom": "BESCOM",
+   "lat": 13.03,
+   "lon": 77.52,
+   "kv": 220,
+   "parent_bus": "NEL",
+   "aliases": [
+    "peenya"
+   ],
+   "weight": 2.0
+  },
+  {
+   "id": "LD_HEBBAL",
+   "name": "Hebbal",
+   "discom": "BESCOM",
+   "lat": 13.04,
+   "lon": 77.59,
+   "kv": 220,
+   "parent_bus": "HOO",
+   "aliases": [
+    "hebbal"
+   ],
+   "weight": 2.0
+  },
+  {
+   "id": "LD_YELAHANKA",
+   "name": "Yelahanka",
+   "discom": "BESCOM",
+   "lat": 13.1,
+   "lon": 77.6,
+   "kv": 220,
+   "parent_bus": "HOO",
+   "aliases": [
+    "yelahanka",
+    "yelahanka dg"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_HOODY",
+   "name": "Hoody",
+   "discom": "BESCOM",
+   "lat": 12.99,
+   "lon": 77.71,
+   "kv": 220,
+   "parent_bus": "HOO",
+   "aliases": [
+    "hoody",
+    "hoodi"
+   ],
+   "weight": 2.0
+  },
+  {
+   "id": "LD_SOMANAHALLI",
+   "name": "Somanahalli",
+   "discom": "BESCOM",
+   "lat": 12.83,
+   "lon": 77.5,
+   "kv": 220,
+   "parent_bus": "SOM",
+   "aliases": [
+    "somanahalli"
+   ],
+   "weight": 2.0
+  },
+  {
+   "id": "LD_NELAMANGALA",
+   "name": "Nelamangala",
+   "discom": "BESCOM",
+   "lat": 13.1,
+   "lon": 77.39,
+   "kv": 220,
+   "parent_bus": "NEL",
+   "aliases": [
+    "nelamangala"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_HAL",
+   "name": "HAL",
+   "discom": "BESCOM",
+   "lat": 12.96,
+   "lon": 77.66,
+   "kv": 220,
+   "parent_bus": "HOO",
+   "aliases": [
+    "hal",
+    "h.a.l"
+   ],
+   "weight": 2.0
+  },
+  {
+   "id": "LD_SUBRAMANYAPURA",
+   "name": "Subramanyapura",
+   "discom": "BESCOM",
+   "lat": 12.9,
+   "lon": 77.54,
+   "kv": 220,
+   "parent_bus": "SOM",
+   "aliases": [
+    "subramanyapura",
+    "s'pura"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_HOSUR_ROAD",
+   "name": "Hosur Road",
+   "discom": "BESCOM",
+   "lat": 12.88,
+   "lon": 77.64,
+   "kv": 220,
+   "parent_bus": "HOO",
+   "aliases": [
+    "hosur road",
+    "hsr"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_ELECTRONIC_CITY",
+   "name": "Electronic City",
+   "discom": "BESCOM",
+   "lat": 12.84,
+   "lon": 77.67,
+   "kv": 220,
+   "parent_bus": "HOO",
+   "aliases": [
+    "electronic city",
+    "e city",
+    "ecity"
+   ],
+   "weight": 2.0
+  },
+  {
+   "id": "LD_MYLASANDRA",
+   "name": "Mylasandra",
+   "discom": "BESCOM",
+   "lat": 12.87,
+   "lon": 77.69,
+   "kv": 220,
+   "parent_bus": "HOO",
+   "aliases": [
+    "mylasandra"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_VRISHABHAVATHI",
+   "name": "Vrishabhavathi",
+   "discom": "BESCOM",
+   "lat": 12.95,
+   "lon": 77.51,
+   "kv": 220,
+   "parent_bus": "SOM",
+   "aliases": [
+    "vrishabhavathi",
+    "vrushabhavathi"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_A_STATION__BENGALURU",
+   "name": "A Station (Bengaluru)",
+   "discom": "BESCOM",
+   "lat": 12.97,
+   "lon": 77.58,
+   "kv": 220,
+   "parent_bus": "HOO",
+   "aliases": [
+    "a station",
+    "a-station"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_EAST_DIVISION",
+   "name": "East Division",
+   "discom": "BESCOM",
+   "lat": 12.98,
+   "lon": 77.62,
+   "kv": 220,
+   "parent_bus": "HOO",
+   "aliases": [
+    "east division",
+    "nimhans"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_DEVANAHALLI",
+   "name": "Devanahalli",
+   "discom": "BESCOM",
+   "lat": 13.25,
+   "lon": 77.71,
+   "kv": 220,
+   "parent_bus": "HOO",
+   "aliases": [
+    "devanahalli",
+    "bial"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_DODDABALLAPUR",
+   "name": "Doddaballapur",
+   "discom": "BESCOM",
+   "lat": 13.29,
+   "lon": 77.54,
+   "kv": 220,
+   "parent_bus": "NEL",
+   "aliases": [
+    "doddaballapur",
+    "dodaballapur"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_CHIKKABALLAPUR",
+   "name": "Chikkaballapur",
+   "discom": "BESCOM",
+   "lat": 13.43,
+   "lon": 77.73,
+   "kv": 220,
+   "parent_bus": "HOO",
+   "aliases": [
+    "chikkaballapur",
+    "chickballapur"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_CHINTAMANI",
+   "name": "Chintamani",
+   "discom": "BESCOM",
+   "lat": 13.4,
+   "lon": 78.05,
+   "kv": 220,
+   "parent_bus": "KOL",
+   "aliases": [
+    "chintamani"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_KOLAR",
+   "name": "Kolar",
+   "discom": "BESCOM",
+   "lat": 13.14,
+   "lon": 78.13,
+   "kv": 220,
+   "parent_bus": "KOL",
+   "aliases": [
+    "kolar"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_MALUR",
+   "name": "Malur",
+   "discom": "BESCOM",
+   "lat": 13.0,
+   "lon": 77.94,
+   "kv": 220,
+   "parent_bus": "HOO",
+   "aliases": [
+    "malur"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_BIDADI",
+   "name": "Bidadi",
+   "discom": "BESCOM",
+   "lat": 12.8,
+   "lon": 77.39,
+   "kv": 220,
+   "parent_bus": "SOM",
+   "aliases": [
+    "bidadi"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_RAMANAGARA",
+   "name": "Ramanagara",
+   "discom": "BESCOM",
+   "lat": 12.72,
+   "lon": 77.28,
+   "kv": 220,
+   "parent_bus": "SOM",
+   "aliases": [
+    "ramanagara",
+    "ramnagar"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_KANAKAPURA",
+   "name": "Kanakapura",
+   "discom": "BESCOM",
+   "lat": 12.55,
+   "lon": 77.42,
+   "kv": 220,
+   "parent_bus": "SOM",
+   "aliases": [
+    "kanakapura"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_TUMAKURU__ANTHARASANAHAL",
+   "name": "Tumakuru (Antharasanahalli)",
+   "discom": "BESCOM",
+   "lat": 13.37,
+   "lon": 77.1,
+   "kv": 220,
+   "parent_bus": "TUM",
+   "aliases": [
+    "antharasanahalli",
+    "tumkur",
+    "tumakuru"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_GUBBI",
+   "name": "Gubbi",
+   "discom": "BESCOM",
+   "lat": 13.31,
+   "lon": 76.94,
+   "kv": 220,
+   "parent_bus": "TUM",
+   "aliases": [
+    "gubbi"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_KUNIGAL",
+   "name": "Kunigal",
+   "discom": "BESCOM",
+   "lat": 13.02,
+   "lon": 77.03,
+   "kv": 220,
+   "parent_bus": "TUM",
+   "aliases": [
+    "kunigal"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_TIPTUR",
+   "name": "Tiptur",
+   "discom": "BESCOM",
+   "lat": 13.26,
+   "lon": 76.48,
+   "kv": 220,
+   "parent_bus": "TUM",
+   "aliases": [
+    "tiptur"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_MADHUGIRI",
+   "name": "Madhugiri",
+   "discom": "BESCOM",
+   "lat": 13.66,
+   "lon": 77.21,
+   "kv": 220,
+   "parent_bus": "TUM",
+   "aliases": [
+    "madhugiri"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_PAVAGADA",
+   "name": "Pavagada",
+   "discom": "BESCOM",
+   "lat": 14.1,
+   "lon": 77.28,
+   "kv": 220,
+   "parent_bus": "PVG",
+   "aliases": [
+    "pavagada"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_CHITRADURGA",
+   "name": "Chitradurga",
+   "discom": "BESCOM",
+   "lat": 14.23,
+   "lon": 76.4,
+   "kv": 220,
+   "parent_bus": "CTD",
+   "aliases": [
+    "chitradurga"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_HIRIYUR",
+   "name": "Hiriyur",
+   "discom": "BESCOM",
+   "lat": 13.95,
+   "lon": 76.62,
+   "kv": 220,
+   "parent_bus": "CTD",
+   "aliases": [
+    "hiriyur"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_DAVANAGERE",
+   "name": "Davanagere",
+   "discom": "BESCOM",
+   "lat": 14.46,
+   "lon": 75.92,
+   "kv": 220,
+   "parent_bus": "DVG",
+   "aliases": [
+    "davanagere",
+    "davangere"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_HARIHAR",
+   "name": "Harihar",
+   "discom": "BESCOM",
+   "lat": 14.51,
+   "lon": 75.8,
+   "kv": 220,
+   "parent_bus": "DVG",
+   "aliases": [
+    "harihar"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_KAVOOR__MANGALURU",
+   "name": "Kavoor (Mangaluru)",
+   "discom": "MESCOM",
+   "lat": 12.91,
+   "lon": 74.86,
+   "kv": 220,
+   "parent_bus": "MNG",
+   "aliases": [
+    "kavoor",
+    "mangalore",
+    "mangaluru"
+   ],
+   "weight": 2.0
+  },
+  {
+   "id": "LD_KEMAR__UDUPI",
+   "name": "Kemar (Udupi)",
+   "discom": "MESCOM",
+   "lat": 13.34,
+   "lon": 74.75,
+   "kv": 220,
+   "parent_bus": "MNG",
+   "aliases": [
+    "kemar",
+    "udupi"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_PUTTUR",
+   "name": "Puttur",
+   "discom": "MESCOM",
+   "lat": 12.76,
+   "lon": 75.2,
+   "kv": 220,
+   "parent_bus": "MNG",
+   "aliases": [
+    "puttur"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_SHIVAMOGGA",
+   "name": "Shivamogga",
+   "discom": "MESCOM",
+   "lat": 13.93,
+   "lon": 75.57,
+   "kv": 220,
+   "parent_bus": "SMG",
+   "aliases": [
+    "shimoga",
+    "shivamogga"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_BHADRAVATHI",
+   "name": "Bhadravathi",
+   "discom": "MESCOM",
+   "lat": 13.84,
+   "lon": 75.7,
+   "kv": 220,
+   "parent_bus": "SMG",
+   "aliases": [
+    "bhadravathi"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_CHIKKAMAGALURU",
+   "name": "Chikkamagaluru",
+   "discom": "MESCOM",
+   "lat": 13.32,
+   "lon": 75.78,
+   "kv": 220,
+   "parent_bus": "SMG",
+   "aliases": [
+    "chikmagalur",
+    "chikkamagaluru"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_KADUR",
+   "name": "Kadur",
+   "discom": "MESCOM",
+   "lat": 13.55,
+   "lon": 76.01,
+   "kv": 220,
+   "parent_bus": "SMG",
+   "aliases": [
+    "kadur"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_TALAGUPPA",
+   "name": "Talaguppa",
+   "discom": "MESCOM",
+   "lat": 14.2,
+   "lon": 74.9,
+   "kv": 220,
+   "parent_bus": "TLG",
+   "aliases": [
+    "talaguppa"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_SAGARA",
+   "name": "Sagara",
+   "discom": "MESCOM",
+   "lat": 14.17,
+   "lon": 75.03,
+   "kv": 220,
+   "parent_bus": "TLG",
+   "aliases": [
+    "sagar",
+    "sagara"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_KUNDAPURA",
+   "name": "Kundapura",
+   "discom": "MESCOM",
+   "lat": 13.63,
+   "lon": 74.69,
+   "kv": 220,
+   "parent_bus": "MNG",
+   "aliases": [
+    "kundapur",
+    "kundapura"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_KADAKOLA__MYSURU",
+   "name": "Kadakola (Mysuru)",
+   "discom": "CESC",
+   "lat": 12.2,
+   "lon": 76.62,
+   "kv": 220,
+   "parent_bus": "MYS",
+   "aliases": [
+    "kadakola",
+    "mysore",
+    "mysuru"
+   ],
+   "weight": 2.0
+  },
+  {
+   "id": "LD_HOOTAGALLI",
+   "name": "Hootagalli",
+   "discom": "CESC",
+   "lat": 12.33,
+   "lon": 76.58,
+   "kv": 220,
+   "parent_bus": "MYS",
+   "aliases": [
+    "hootagalli"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_VAJAMANGALA",
+   "name": "Vajamangala",
+   "discom": "CESC",
+   "lat": 12.24,
+   "lon": 76.7,
+   "kv": 220,
+   "parent_bus": "MYS",
+   "aliases": [
+    "vajamangala"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_NANJANGUD",
+   "name": "Nanjangud",
+   "discom": "CESC",
+   "lat": 12.12,
+   "lon": 76.68,
+   "kv": 220,
+   "parent_bus": "MYS",
+   "aliases": [
+    "nanjangud"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_CHAMARAJANAGAR",
+   "name": "Chamarajanagar",
+   "discom": "CESC",
+   "lat": 11.92,
+   "lon": 76.94,
+   "kv": 220,
+   "parent_bus": "MYS",
+   "aliases": [
+    "chamarajanagar"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_MANDYA",
+   "name": "Mandya",
+   "discom": "CESC",
+   "lat": 12.52,
+   "lon": 76.9,
+   "kv": 220,
+   "parent_bus": "MYS",
+   "aliases": [
+    "mandya"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_MADDUR",
+   "name": "Maddur",
+   "discom": "CESC",
+   "lat": 12.58,
+   "lon": 77.04,
+   "kv": 220,
+   "parent_bus": "MYS",
+   "aliases": [
+    "maddur"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_T_K__HALLI",
+   "name": "T.K. Halli",
+   "discom": "CESC",
+   "lat": 12.4,
+   "lon": 77.03,
+   "kv": 220,
+   "parent_bus": "MYS",
+   "aliases": [
+    "tk halli",
+    "t.k.halli",
+    "t k halli"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_HASSAN__SHANTIGRAMA",
+   "name": "Hassan (Shantigrama)",
+   "discom": "CESC",
+   "lat": 13.0,
+   "lon": 76.18,
+   "kv": 220,
+   "parent_bus": "HAS",
+   "aliases": [
+    "shantigrama",
+    "hassan"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_CHANNARAYAPATNA",
+   "name": "Channarayapatna",
+   "discom": "CESC",
+   "lat": 12.9,
+   "lon": 76.39,
+   "kv": 220,
+   "parent_bus": "HAS",
+   "aliases": [
+    "channarayapatna",
+    "c r patna"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_ARSIKERE",
+   "name": "Arsikere",
+   "discom": "CESC",
+   "lat": 13.31,
+   "lon": 76.26,
+   "kv": 220,
+   "parent_bus": "HAS",
+   "aliases": [
+    "arsikere"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_MADIKERI",
+   "name": "Madikeri",
+   "discom": "CESC",
+   "lat": 12.42,
+   "lon": 75.74,
+   "kv": 220,
+   "parent_bus": "HAS",
+   "aliases": [
+    "madikeri"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_KUSHALNAGAR",
+   "name": "Kushalnagar",
+   "discom": "CESC",
+   "lat": 12.46,
+   "lon": 75.96,
+   "kv": 220,
+   "parent_bus": "HAS",
+   "aliases": [
+    "kushalnagar"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_HUNSUR",
+   "name": "Hunsur",
+   "discom": "CESC",
+   "lat": 12.31,
+   "lon": 76.29,
+   "kv": 220,
+   "parent_bus": "MYS",
+   "aliases": [
+    "hunsur"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_HUBBALLI",
+   "name": "Hubballi",
+   "discom": "HESCOM",
+   "lat": 15.36,
+   "lon": 75.12,
+   "kv": 220,
+   "parent_bus": "NAR",
+   "aliases": [
+    "hubli",
+    "hubballi"
+   ],
+   "weight": 2.0
+  },
+  {
+   "id": "LD_NARENDRA",
+   "name": "Narendra",
+   "discom": "HESCOM",
+   "lat": 15.4,
+   "lon": 75.05,
+   "kv": 220,
+   "parent_bus": "NAR",
+   "aliases": [
+    "narendra"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_DHARWAD",
+   "name": "Dharwad",
+   "discom": "HESCOM",
+   "lat": 15.46,
+   "lon": 75.01,
+   "kv": 220,
+   "parent_bus": "NAR",
+   "aliases": [
+    "dharwad"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_BELAGAVI",
+   "name": "Belagavi",
+   "discom": "HESCOM",
+   "lat": 15.85,
+   "lon": 74.5,
+   "kv": 220,
+   "parent_bus": "BGM",
+   "aliases": [
+    "belgaum",
+    "belagavi"
+   ],
+   "weight": 2.0
+  },
+  {
+   "id": "LD_GHATAPRABHA",
+   "name": "Ghataprabha",
+   "discom": "HESCOM",
+   "lat": 16.25,
+   "lon": 74.83,
+   "kv": 220,
+   "parent_bus": "BGM",
+   "aliases": [
+    "ghataprabha"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_CHIKKODI",
+   "name": "Chikkodi",
+   "discom": "HESCOM",
+   "lat": 16.43,
+   "lon": 74.59,
+   "kv": 220,
+   "parent_bus": "BGM",
+   "aliases": [
+    "chikkodi",
+    "chikodi"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_ATHANI",
+   "name": "Athani",
+   "discom": "HESCOM",
+   "lat": 16.73,
+   "lon": 75.06,
+   "kv": 220,
+   "parent_bus": "VJP",
+   "aliases": [
+    "athani"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_MAHALINGAPURA",
+   "name": "Mahalingapura",
+   "discom": "HESCOM",
+   "lat": 16.38,
+   "lon": 75.11,
+   "kv": 220,
+   "parent_bus": "VJP",
+   "aliases": [
+    "mahalingpur",
+    "mahalingapura"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_BAGALKOT",
+   "name": "Bagalkot",
+   "discom": "HESCOM",
+   "lat": 16.18,
+   "lon": 75.7,
+   "kv": 220,
+   "parent_bus": "VJP",
+   "aliases": [
+    "bagalkot"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_VIJAYAPURA",
+   "name": "Vijayapura",
+   "discom": "HESCOM",
+   "lat": 16.83,
+   "lon": 75.71,
+   "kv": 220,
+   "parent_bus": "VJP",
+   "aliases": [
+    "bijapur",
+    "vijayapura"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_BASAVANA_BAGEWADI",
+   "name": "Basavana Bagewadi",
+   "discom": "HESCOM",
+   "lat": 16.57,
+   "lon": 75.97,
+   "kv": 220,
+   "parent_bus": "VJP",
+   "aliases": [
+    "b bagewadi",
+    "bagewadi"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_GADAG",
+   "name": "Gadag",
+   "discom": "HESCOM",
+   "lat": 15.43,
+   "lon": 75.63,
+   "kv": 220,
+   "parent_bus": "GAD",
+   "aliases": [
+    "gadag"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_HAVERI",
+   "name": "Haveri",
+   "discom": "HESCOM",
+   "lat": 14.79,
+   "lon": 75.4,
+   "kv": 220,
+   "parent_bus": "GAD",
+   "aliases": [
+    "haveri"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_RANEBENNUR",
+   "name": "Ranebennur",
+   "discom": "HESCOM",
+   "lat": 14.62,
+   "lon": 75.62,
+   "kv": 220,
+   "parent_bus": "GAD",
+   "aliases": [
+    "ranebennur"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_KARWAR",
+   "name": "Karwar",
+   "discom": "HESCOM",
+   "lat": 14.81,
+   "lon": 74.13,
+   "kv": 220,
+   "parent_bus": "KGA",
+   "aliases": [
+    "karwar"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_SIRSI",
+   "name": "Sirsi",
+   "discom": "HESCOM",
+   "lat": 14.62,
+   "lon": 74.84,
+   "kv": 220,
+   "parent_bus": "KGA",
+   "aliases": [
+    "sirsi"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_KAIGA",
+   "name": "Kaiga",
+   "discom": "HESCOM",
+   "lat": 14.86,
+   "lon": 74.44,
+   "kv": 220,
+   "parent_bus": "KGA",
+   "aliases": [
+    "kaiga"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_KALABURAGI",
+   "name": "Kalaburagi",
+   "discom": "GESCOM",
+   "lat": 17.33,
+   "lon": 76.83,
+   "kv": 220,
+   "parent_bus": "GUL",
+   "aliases": [
+    "gulbarga",
+    "kalaburagi"
+   ],
+   "weight": 2.0
+  },
+  {
+   "id": "LD_SHAHABAD",
+   "name": "Shahabad",
+   "discom": "GESCOM",
+   "lat": 17.13,
+   "lon": 76.94,
+   "kv": 220,
+   "parent_bus": "GUL",
+   "aliases": [
+    "shahabad"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_SEDAM",
+   "name": "Sedam",
+   "discom": "GESCOM",
+   "lat": 17.18,
+   "lon": 77.28,
+   "kv": 220,
+   "parent_bus": "GUL",
+   "aliases": [
+    "sedam"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_BIDAR",
+   "name": "Bidar",
+   "discom": "GESCOM",
+   "lat": 17.91,
+   "lon": 77.52,
+   "kv": 220,
+   "parent_bus": "BDR",
+   "aliases": [
+    "bidar"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_HUMNABAD",
+   "name": "Humnabad",
+   "discom": "GESCOM",
+   "lat": 17.77,
+   "lon": 77.13,
+   "kv": 220,
+   "parent_bus": "BDR",
+   "aliases": [
+    "humnabad"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_YADGIR",
+   "name": "Yadgir",
+   "discom": "GESCOM",
+   "lat": 16.77,
+   "lon": 77.13,
+   "kv": 220,
+   "parent_bus": "RCH",
+   "aliases": [
+    "yadgir"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_SHORAPUR",
+   "name": "Shorapur",
+   "discom": "GESCOM",
+   "lat": 16.52,
+   "lon": 76.76,
+   "kv": 220,
+   "parent_bus": "RCH",
+   "aliases": [
+    "shorapur",
+    "surpur"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_RAICHUR",
+   "name": "Raichur",
+   "discom": "GESCOM",
+   "lat": 16.2,
+   "lon": 77.36,
+   "kv": 220,
+   "parent_bus": "RCH",
+   "aliases": [
+    "raichur"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_LINGASUGUR",
+   "name": "Lingasugur",
+   "discom": "GESCOM",
+   "lat": 16.16,
+   "lon": 76.52,
+   "kv": 220,
+   "parent_bus": "RCH",
+   "aliases": [
+    "lingasugur",
+    "lingsugur"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_SINDHANUR",
+   "name": "Sindhanur",
+   "discom": "GESCOM",
+   "lat": 15.77,
+   "lon": 76.76,
+   "kv": 220,
+   "parent_bus": "BLY",
+   "aliases": [
+    "sindhanur"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_KOPPAL",
+   "name": "Koppal",
+   "discom": "GESCOM",
+   "lat": 15.35,
+   "lon": 76.15,
+   "kv": 220,
+   "parent_bus": "BLY",
+   "aliases": [
+    "koppal"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_GANGAVATHI",
+   "name": "Gangavathi",
+   "discom": "GESCOM",
+   "lat": 15.43,
+   "lon": 76.53,
+   "kv": 220,
+   "parent_bus": "BLY",
+   "aliases": [
+    "gangavathi"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_BALLARI__ALIPUR",
+   "name": "Ballari (Alipur)",
+   "discom": "GESCOM",
+   "lat": 15.14,
+   "lon": 76.92,
+   "kv": 220,
+   "parent_bus": "BLY",
+   "aliases": [
+    "alipur",
+    "bellary",
+    "ballari"
+   ],
+   "weight": 2.0
+  },
+  {
+   "id": "LD_HOSAPETE",
+   "name": "Hosapete",
+   "discom": "GESCOM",
+   "lat": 15.27,
+   "lon": 76.39,
+   "kv": 220,
+   "parent_bus": "BLY",
+   "aliases": [
+    "hospet",
+    "hosapete"
+   ],
+   "weight": 1.0
+  },
+  {
+   "id": "LD_TORANAGALLU",
+   "name": "Toranagallu",
+   "discom": "GESCOM",
+   "lat": 15.18,
+   "lon": 76.67,
+   "kv": 220,
+   "parent_bus": "BLY",
+   "aliases": [
+    "toranagallu",
+    "jsw"
+   ],
+   "weight": 2.0
+  },
+  {
+   "id": "LD_KUSHTAGI",
+   "name": "Kushtagi",
+   "discom": "GESCOM",
+   "lat": 15.76,
+   "lon": 76.19,
+   "kv": 220,
+   "parent_bus": "BLY",
+   "aliases": [
+    "kushtagi"
+   ],
+   "weight": 1.0
+  }
+ ],
+ "gen_stations": [
+  {
+   "id": "GS_RAICHUR_TPS",
+   "name": "Raichur TPS",
+   "type": "coal",
+   "owner": "State",
+   "lat": 16.36,
+   "lon": 77.36,
+   "capacityMW": 1720,
+   "model_gen": "G_RTPS",
+   "aliases": [
+    "rtps",
+    "raichur"
+   ]
+  },
+  {
+   "id": "GS_YERMARUS_TPS",
+   "name": "Yermarus TPS",
+   "type": "coal",
+   "owner": "State",
+   "lat": 16.24,
+   "lon": 77.3,
+   "capacityMW": 1600,
+   "model_gen": "G_YTPS",
+   "aliases": [
+    "ytps",
+    "yermarus",
+    "yeramarus"
+   ]
+  },
+  {
+   "id": "GS_BALLARI_TPS",
+   "name": "Ballari TPS",
+   "type": "coal",
+   "owner": "State",
+   "lat": 15.24,
+   "lon": 76.78,
+   "capacityMW": 1700,
+   "model_gen": "G_BTPS",
+   "aliases": [
+    "btps",
+    "bellary tps",
+    "ballari tps"
+   ]
+  },
+  {
+   "id": "GS_UDUPI_POWER__UPCL",
+   "name": "Udupi Power (UPCL)",
+   "type": "coal",
+   "owner": "IPP",
+   "lat": 13.17,
+   "lon": 74.76,
+   "capacityMW": 1200,
+   "model_gen": "G_UPCL",
+   "aliases": [
+    "upcl",
+    "udupi power",
+    "adani"
+   ]
+  },
+  {
+   "id": "GS_JSW_ENERGY__TORANAGALLU",
+   "name": "JSW Energy (Toranagallu)",
+   "type": "coal",
+   "owner": "IPP",
+   "lat": 15.17,
+   "lon": 76.65,
+   "capacityMW": 860,
+   "model_gen": "G_BTPS",
+   "aliases": [
+    "jsw",
+    "jswel"
+   ]
+  },
+  {
+   "id": "GS_NTPC_KUDGI",
+   "name": "NTPC Kudgi",
+   "type": "coal",
+   "owner": "Central",
+   "lat": 16.48,
+   "lon": 75.9,
+   "capacityMW": 2400,
+   "model_gen": "G_KDG",
+   "aliases": [
+    "kudgi",
+    "ntpc"
+   ]
+  },
+  {
+   "id": "GS_KAIGA_APS",
+   "name": "Kaiga APS",
+   "type": "nuclear",
+   "owner": "Central",
+   "lat": 14.86,
+   "lon": 74.44,
+   "capacityMW": 880,
+   "model_gen": "G_KGA",
+   "aliases": [
+    "kaiga",
+    "npcil"
+   ]
+  },
+  {
+   "id": "GS_SHARAVATHI",
+   "name": "Sharavathi",
+   "type": "hydro",
+   "owner": "State",
+   "lat": 14.24,
+   "lon": 74.81,
+   "capacityMW": 1035,
+   "model_gen": "G_SHV",
+   "aliases": [
+    "sharavathi",
+    "sharavathy"
+   ]
+  },
+  {
+   "id": "GS_LINGANAMAKKI",
+   "name": "Linganamakki",
+   "type": "hydro",
+   "owner": "State",
+   "lat": 14.17,
+   "lon": 74.85,
+   "capacityMW": 55,
+   "model_gen": "G_SHV",
+   "aliases": [
+    "linganamakki",
+    "lingnamakki"
+   ]
+  },
+  {
+   "id": "GS_MAHATMA_GANDHI__JOG",
+   "name": "Mahatma Gandhi (Jog)",
+   "type": "hydro",
+   "owner": "State",
+   "lat": 14.23,
+   "lon": 74.8,
+   "capacityMW": 139,
+   "model_gen": "G_SHV",
+   "aliases": [
+    "jog",
+    "mgh",
+    "mahatma gandhi"
+   ]
+  },
+  {
+   "id": "GS_GERUSOPPA",
+   "name": "Gerusoppa",
+   "type": "hydro",
+   "owner": "State",
+   "lat": 14.25,
+   "lon": 74.65,
+   "capacityMW": 240,
+   "model_gen": "G_SHV",
+   "aliases": [
+    "gerusoppa",
+    "sharavathy tail race"
+   ]
+  },
+  {
+   "id": "GS_VARAHI",
+   "name": "Varahi",
+   "type": "hydro",
+   "owner": "State",
+   "lat": 13.66,
+   "lon": 74.93,
+   "capacityMW": 460,
+   "model_gen": "G_SHV",
+   "aliases": [
+    "varahi"
+   ]
+  },
+  {
+   "id": "GS_NAGJHARI",
+   "name": "Nagjhari",
+   "type": "hydro",
+   "owner": "State",
+   "lat": 15.17,
+   "lon": 74.57,
+   "capacityMW": 855,
+   "model_gen": "G_NGJ",
+   "aliases": [
+    "nagjhari"
+   ]
+  },
+  {
+   "id": "GS_SUPA",
+   "name": "Supa",
+   "type": "hydro",
+   "owner": "State",
+   "lat": 15.27,
+   "lon": 74.52,
+   "capacityMW": 100,
+   "model_gen": "G_NGJ",
+   "aliases": [
+    "supa"
+   ]
+  },
+  {
+   "id": "GS_KADRA",
+   "name": "Kadra",
+   "type": "hydro",
+   "owner": "State",
+   "lat": 14.88,
+   "lon": 74.36,
+   "capacityMW": 150,
+   "model_gen": "G_NGJ",
+   "aliases": [
+    "kadra"
+   ]
+  },
+  {
+   "id": "GS_KODASALLI",
+   "name": "Kodasalli",
+   "type": "hydro",
+   "owner": "State",
+   "lat": 14.92,
+   "lon": 74.48,
+   "capacityMW": 120,
+   "model_gen": "G_NGJ",
+   "aliases": [
+    "kodasalli"
+   ]
+  },
+  {
+   "id": "GS_ALMATTI",
+   "name": "Almatti",
+   "type": "hydro",
+   "owner": "State",
+   "lat": 16.33,
+   "lon": 75.88,
+   "capacityMW": 290,
+   "model_gen": "G_KDG",
+   "aliases": [
+    "almatti"
+   ]
+  },
+  {
+   "id": "GS_SHIVASAMUDRAM",
+   "name": "Shivasamudram",
+   "type": "hydro",
+   "owner": "State",
+   "lat": 12.3,
+   "lon": 77.17,
+   "capacityMW": 42,
+   "model_gen": "G_SHV",
+   "aliases": [
+    "shivasamudram",
+    "sivasamudram"
+   ]
+  },
+  {
+   "id": "GS_PAVAGADA_SOLAR_PARK",
+   "name": "Pavagada Solar Park",
+   "type": "solar",
+   "owner": "IPP",
+   "lat": 14.16,
+   "lon": 77.31,
+   "capacityMW": 2050,
+   "model_gen": "G_PVG",
+   "aliases": [
+    "pavagada"
+   ]
+  },
+  {
+   "id": "GS_BALLARI_KOPPAL_SOLAR",
+   "name": "Ballari\u2013Koppal Solar",
+   "type": "solar",
+   "owner": "IPP",
+   "lat": 15.4,
+   "lon": 76.3,
+   "capacityMW": 1100,
+   "model_gen": "G_BSOL",
+   "aliases": [
+    "solar ballari",
+    "koppal solar"
+   ]
+  },
+  {
+   "id": "GS_VIJAYAPURA_KALABURAGI_SO",
+   "name": "Vijayapura\u2013Kalaburagi Solar",
+   "type": "solar",
+   "owner": "IPP",
+   "lat": 16.95,
+   "lon": 76.2,
+   "capacityMW": 1000,
+   "model_gen": "G_VSOL",
+   "aliases": [
+    "solar vijayapura",
+    "solar kalaburagi"
+   ]
+  },
+  {
+   "id": "GS_SOLAR__OTHER_NCE",
+   "name": "Solar (other NCE)",
+   "type": "solar",
+   "owner": "IPP",
+   "lat": 15.0,
+   "lon": 76.0,
+   "capacityMW": 0,
+   "model_gen": "G_VSOL",
+   "aliases": [
+    "solar",
+    "nce solar"
+   ]
+  },
+  {
+   "id": "GS_CHITRADURGA_WIND",
+   "name": "Chitradurga Wind",
+   "type": "wind",
+   "owner": "IPP",
+   "lat": 14.05,
+   "lon": 76.55,
+   "capacityMW": 1400,
+   "model_gen": "G_CWND",
+   "aliases": [
+    "chitradurga wind",
+    "wind chitradurga"
+   ]
+  },
+  {
+   "id": "GS_GADAG_WIND",
+   "name": "Gadag Wind",
+   "type": "wind",
+   "owner": "IPP",
+   "lat": 15.25,
+   "lon": 75.75,
+   "capacityMW": 1100,
+   "model_gen": "G_GWND",
+   "aliases": [
+    "gadag wind",
+    "wind gadag"
+   ]
+  },
+  {
+   "id": "GS_WIND__OTHER_NCE",
+   "name": "Wind (other NCE)",
+   "type": "wind",
+   "owner": "IPP",
+   "lat": 15.0,
+   "lon": 75.9,
+   "capacityMW": 0,
+   "model_gen": "G_GWND",
+   "aliases": [
+    "wind",
+    "nce wind"
+   ]
+  }
+ ]
+}

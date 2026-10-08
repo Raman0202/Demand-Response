@@ -1,0 +1,12 @@
+[project]
+name = "ksfp"
+version = "1.0.0"
+description = "Karnataka State Flexibility Platform — autonomous DR / VPP control backend"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 140

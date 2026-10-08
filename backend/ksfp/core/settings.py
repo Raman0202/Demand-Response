@@ -1,0 +1,34 @@
+"""Runtime configuration (12-factor: everything from environment variables)."""
+from __future__ import annotations
+
+import os
+import secrets
+from dataclasses import dataclass, field
+
+
+def _env(name: str, default: str) -> str:
+    return os.environ.get(name, default)
+
+
+def _bool(name: str, default: bool) -> bool:
+    return _env(name, str(default)).lower() in {"1", "true", "yes", "on"}
+
+
+@dataclass(frozen=True)
+class Settings:
+    env: str = field(default_factory=lambda: _env("KSFP_ENV", "dev"))
+    database_url: str = field(default_factory=lambda: _env("KSFP_DATABASE_URL", "sqlite+aiosqlite:///./data/ksfp.db"))
+    jwt_secret: str = field(default_factory=lambda: _env("KSFP_JWT_SECRET", "") or secrets.token_hex(32))
+    jwt_ttl_min: int = field(default_factory=lambda: int(_env("KSFP_JWT_TTL_MIN", "480")))
+    # data source: "simulated" (field simulator) — real adapters (iec104, iccp) plug in at ingest.sources
+    source: str = field(default_factory=lambda: _env("KSFP_SOURCE", "simulated"))
+    time_scale: float = field(default_factory=lambda: float(_env("KSFP_TIME_SCALE", "20")))
+    sim_start: str = field(default_factory=lambda: _env("KSFP_SIM_START", "14:30"))
+    auto_disturbances: bool = field(default_factory=lambda: _bool("KSFP_AUTO_DISTURBANCES", True))
+    seed: int = field(default_factory=lambda: int(_env("KSFP_SEED", "7")))
+    run_loops: bool = field(default_factory=lambda: _bool("KSFP_RUN_LOOPS", True))
+    demo_users: bool = field(default_factory=lambda: _bool("KSFP_DEMO_USERS", True))
+    cors_origins: str = field(default_factory=lambda: _env("KSFP_CORS_ORIGINS", "*"))
+
+
+settings = Settings()
