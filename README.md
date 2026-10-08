@@ -13,6 +13,15 @@ npm run build
 npm run scenarios  # run every scenario preset through the engine (CLI summary)
 ```
 
+### Docker
+
+```bash
+docker compose up --build              # production build behind nginx → http://localhost:8080
+docker compose --profile dev up web-dev # Vite dev server with hot reload → http://localhost:5173
+```
+
+The image (`web/Dockerfile`) is multi-stage. It runs `npm ci`, then type-checks, runs the engine tests and builds. A failing test fails the image build. The result is served by `nginx:alpine` on port 8080 (about 76 MB), with SPA fallback routing, gzip, immutable caching for hashed assets, basic security headers and a `/healthz` endpoint used by the container `HEALTHCHECK`.
+
 ## Experience
 
 - **Lifecycle rail** (on every screen): Observe · Simulate · Decide · Act · Learn, with one context-aware **Next best action** button.

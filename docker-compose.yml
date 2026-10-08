@@ -1,0 +1,22 @@
+# Production-like:  docker compose up --build            → http://localhost:8080
+# Dev (hot reload): docker compose --profile dev up      → http://localhost:5173
+services:
+  web:
+    build:
+      context: ./web
+      target: runtime
+    image: ksfp-web:latest
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  web-dev:
+    profiles: ["dev"]
+    build:
+      context: ./web
+      target: dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./web:/app
+      - /app/node_modules
