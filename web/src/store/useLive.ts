@@ -3,6 +3,7 @@ import { create } from 'zustand'
 import { setTopology } from '@/data/topology'
 import type { Alarm, Frame, Topology } from '@/data/types'
 import { api } from '@/lib/api'
+import { useNotify } from './useNotify'
 
 export interface TrendPoint {
   t: string
@@ -76,6 +77,7 @@ export const useLive = create<LiveState>((set, get) => ({
     ws.onopen = () => {
       retry = 0
       set({ conn: 'live' })
+      void useNotify.getState().seed()
     }
     ws.onmessage = (ev) => {
       const msg = JSON.parse(ev.data)
@@ -104,6 +106,10 @@ export const useLive = create<LiveState>((set, get) => ({
           priority = a.priority
         } else if (msg.topic.startsWith('decision.')) title = `Decision ${d.id}: ${d.state} — ${d.headline ?? ''}`
         else if (msg.topic.startsWith('command.')) title = `${msg.topic.split('.')[1]}: ${d.asset_name} ${d.setpoint} MW`
+        const nf = useNotify.getState()
+        if (msg.topic === 'decision.updated') nf.onDecision(d)
+        else if (msg.topic === 'command.failed') nf.onCommandFailed(d)
+        else if (msg.topic === 'alarm.raised') nf.onAlarm(d as Alarm)
         set((s) => ({
           events: [{ id: `${Date.now()}-${Math.random()}`, ts: Date.now(), topic: msg.topic, title, priority }, ...s.events].slice(0, 100),
           rev: s.rev + 1,

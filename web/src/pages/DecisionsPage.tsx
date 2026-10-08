@@ -1,7 +1,7 @@
 // DR Events — every event the platform opened: need, dispatch, delivery vs baseline, value. Approve / reject / abort with full evidence.
 import { useState } from 'react'
 import { Area, Bar as RBar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts'
-import { AlertTriangle, Ban, Check, CheckCircle2, Loader2, OctagonX, XCircle } from 'lucide-react'
+import { AlertTriangle, Ban, Brain, Check, CheckCircle2, Loader2, OctagonX, Receipt, Send, UserCheck, XCircle, Zap } from 'lucide-react'
 import { Calc, FitPager, SectionTabs } from '@/components/common'
 import { Empty, Panel, Stat, StoryChain } from '@/components/page'
 import { Badge } from '@/components/ui/badge'
@@ -158,71 +158,77 @@ export function DecisionsPage() {
   const selected = decisionId ?? items.find((d) => ['AWAITING_APPROVAL', 'EXECUTING', 'RELEASING'].includes(d.state))?.id ?? items[0]?.id ?? null
   return (
     <div className="flex h-full flex-col gap-3">
-      <div className="grid min-h-0 flex-1 grid-cols-[300px_minmax(0,1fr)] gap-3">
-        <Panel
-          title="DR events"
-          aside={
-            <span className="text-[11px] text-slate-500">
-              {items.filter((d) => OPEN.includes(d.state)).length} open · {items.length} total
-            </span>
-          }
-          bodyClass="p-1.5"
-        >
-          {items.length === 0 ? (
-            <Empty>No DR events yet. The platform opens one automatically when the grid need stays above 100 MW for a minute.</Empty>
-          ) : (
-            <FitPager
-              items={items}
-              rowHeight={76}
-              reserve={36}
-              render={(slice) => (
-                <div className="space-y-1">
-                  {slice.map((d) => {
-                    const pct = d.planned_mw > 0.5 ? Math.min(1, d.delivered_mw / d.planned_mw) : 0
-                    return (
-                      <button
-                        key={d.id}
-                        onClick={() => go('decisions', d.id)}
-                        className={cn(
-                          'w-full rounded-lg border px-2.5 py-1.5 text-left transition hover:bg-slate-50',
-                          selected === d.id && 'border-sky-300 bg-sky-50/70 ring-1 ring-sky-200',
-                        )}
-                      >
-                        <div className="flex items-center gap-1.5">
-                          <span className={cn('rounded px-1.5 text-[9px] font-bold', STATE_STYLE[d.state] ?? 'bg-slate-100')}>{d.state.replace('_', ' ')}</span>
-                          <span className="font-mono text-[10px] text-slate-500">{d.id}</span>
-                          <span className="ml-auto text-[10px] text-slate-400">{clock(d.opened_at)}</span>
-                        </div>
-                        <div className="mt-0.5 flex items-baseline gap-1.5">
-                          <span className="font-mono text-[13px] font-semibold text-slate-800">{fmtMW(d.requirement_mw)}</span>
-                          <span className="text-[10px] text-slate-500">
-                            {d.direction === 'UP' ? 'load reduction' : 'load increase'} · {d.severity}
-                          </span>
-                        </div>
-                        <div className="mt-1 flex items-center gap-2">
-                          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
-                            <div className={cn('h-full rounded-full', pct >= 0.85 ? 'bg-emerald-400' : 'bg-sky-400')} style={{ width: `${pct * 100}%` }} />
+      <div className="grid min-h-0 flex-1 grid-cols-[320px_minmax(0,1fr)] gap-3">
+        <div className="flex min-h-0 flex-col gap-3">
+          <TodaySummary items={items} />
+          <Panel
+            className="min-h-0"
+            style={{ flex: `0 1 ${Math.max(1, Math.min(items.length, 5)) * 80 + 56}px` }}
+            title="DR events"
+            aside={
+              <span className="text-[11px] text-slate-500">
+                {items.filter((d) => OPEN.includes(d.state)).length} open · {items.length} total
+              </span>
+            }
+            bodyClass="p-1.5"
+          >
+            {items.length === 0 ? (
+              <Empty>No DR events yet. The platform opens one automatically when the grid need stays above 100 MW for a minute.</Empty>
+            ) : (
+              <FitPager
+                items={items}
+                rowHeight={76}
+                reserve={36}
+                render={(slice) => (
+                  <div className="space-y-1">
+                    {slice.map((d) => {
+                      const pct = d.planned_mw > 0.5 ? Math.min(1, d.delivered_mw / d.planned_mw) : 0
+                      return (
+                        <button
+                          key={d.id}
+                          onClick={() => go('decisions', d.id)}
+                          className={cn(
+                            'w-full rounded-lg border px-2.5 py-1.5 text-left transition hover:bg-slate-50',
+                            selected === d.id && 'border-sky-300 bg-sky-50/70 ring-1 ring-sky-200',
+                          )}
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span className={cn('rounded px-1.5 text-[9px] font-bold', STATE_STYLE[d.state] ?? 'bg-slate-100')}>{d.state.replace('_', ' ')}</span>
+                            <span className="font-mono text-[10px] text-slate-500">{d.id}</span>
+                            <span className="ml-auto text-[10px] text-slate-400">{clock(d.opened_at)}</span>
                           </div>
-                          <span className="shrink-0 text-[10px] text-slate-500">
-                            {d.net_benefit_rs != null ? (
-                              <span className="text-emerald-700">net {fmtRs(d.net_benefit_rs)}</span>
-                            ) : OPEN.includes(d.state) ? (
-                              `${fmtMW(d.delivered_mw)} delivering`
-                            ) : d.closed_reason ? (
-                              'closed'
-                            ) : (
-                              ''
-                            )}
-                          </span>
-                        </div>
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            />
-          )}
-        </Panel>
+                          <div className="mt-0.5 flex items-baseline gap-1.5">
+                            <span className="font-mono text-[13px] font-semibold text-slate-800">{fmtMW(d.requirement_mw)}</span>
+                            <span className="text-[10px] text-slate-500">
+                              {d.direction === 'UP' ? 'load reduction' : 'load increase'} · {d.severity}
+                            </span>
+                          </div>
+                          <div className="mt-1 flex items-center gap-2">
+                            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                              <div className={cn('h-full rounded-full', pct >= 0.85 ? 'bg-emerald-400' : 'bg-sky-400')} style={{ width: `${pct * 100}%` }} />
+                            </div>
+                            <span className="shrink-0 text-[10px] text-slate-500">
+                              {d.net_benefit_rs != null ? (
+                                <span className="text-emerald-700">net {fmtRs(d.net_benefit_rs)}</span>
+                              ) : OPEN.includes(d.state) ? (
+                                `${fmtMW(d.delivered_mw)} delivering`
+                              ) : d.closed_reason ? (
+                                'closed'
+                              ) : (
+                                ''
+                              )}
+                            </span>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              />
+            )}
+          </Panel>
+          <ActivityLog id={selected} />
+        </div>
         {selected ? <DecisionDetail id={selected} /> : <Panel>{<Empty>Select a DR event.</Empty>}</Panel>}
       </div>
     </div>
@@ -692,7 +698,8 @@ function EventKpis({ d }: { d: Full }) {
   const st = d.settlement
   const delivering = o.delivered_mw ?? d.delivered_mw
   const expected = o.expected_mw ?? 0
-  const perf = st ? (st.expected_mwh > 0 ? st.delivered_mwh / st.expected_mwh : null) : expected > 0.5 ? delivering / expected : null
+  // a ratio over a few MW is noise: only report performance once there is a meaningful expectation
+  const perf = st ? (st.expected_mwh >= 0.5 ? st.delivered_mwh / st.expected_mwh : null) : expected >= 5 ? delivering / expected : null
   const mins = st ? st.duration_min : (o.minutes ?? 0)
   return (
     <div className="grid shrink-0 grid-cols-6 gap-2">
@@ -741,5 +748,115 @@ function PerformanceChart({ d }: { d: Full }) {
         <Line dataKey="target" name="Target" stroke="#f59e0b" strokeDasharray="5 4" strokeWidth={1.5} dot={false} isAnimationActive={false} />
       </ComposedChart>
     </ResponsiveContainer>
+  )
+}
+
+function TodaySummary({ items }: { items: DecisionSummary[] }) {
+  const { data: rep } = useApi<{ decisions: number; delivered_mwh: number; expected_mwh: number; net_benefit_rs: number }>('/reports/summary', { intervalMs: 15000 })
+  const open = items.filter((d) => OPEN.includes(d.state))
+  const waiting = items.filter((d) => d.state === 'AWAITING_APPROVAL').length
+  const perf = rep && rep.expected_mwh > 0 ? rep.delivered_mwh / rep.expected_mwh : null
+  const cells = [
+    {
+      k: 'Open events',
+      v: String(open.length),
+      s: waiting ? `${waiting} awaiting approval` : open.length ? 'running' : 'none active',
+      tone: waiting ? 'text-amber-700' : 'text-slate-800',
+    },
+    { k: 'Settled', v: String(rep?.decisions ?? 0), s: `${items.length} events in log`, tone: 'text-slate-800' },
+    {
+      k: 'Energy delivered',
+      v: `${(rep?.delivered_mwh ?? 0).toFixed(1)} MWh`,
+      s: perf == null ? 'vs baseline' : `${(perf * 100).toFixed(0)}% of expected`,
+      tone: 'text-slate-800',
+    },
+    { k: 'Net benefit', v: fmtRs(rep?.net_benefit_rs ?? 0), s: 'after participant payments', tone: (rep?.net_benefit_rs ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-600' },
+  ]
+  return (
+    <div className="grid shrink-0 grid-cols-2 gap-2">
+      {cells.map((c) => (
+        <div key={c.k} className="rounded-xl border bg-white px-2.5 py-1.5 shadow-xs">
+          <div className="text-[10px] text-slate-500">{c.k}</div>
+          <div className={cn('font-mono text-[14px] font-semibold tabular-nums', c.tone)}>{c.v}</div>
+          <div className="truncate text-[10px] text-slate-400">{c.s}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+interface AuditEntry {
+  seq: number
+  ts: number
+  kind: string
+  actor: string
+  message: string
+}
+
+const ACT: Record<string, { icon: typeof Check; cls: string; label: string }> = {
+  EVENT: { icon: Zap, cls: 'bg-sky-100 text-sky-700', label: 'Event' },
+  ANALYSIS: { icon: Brain, cls: 'bg-violet-100 text-violet-700', label: 'Re-plan' },
+  APPROVAL: { icon: UserCheck, cls: 'bg-amber-100 text-amber-700', label: 'Approval' },
+  COMMAND: { icon: Send, cls: 'bg-sky-100 text-sky-700', label: 'Dispatch' },
+  ACK: { icon: CheckCircle2, cls: 'bg-emerald-100 text-emerald-700', label: 'Ack' },
+  SETTLEMENT: { icon: Receipt, cls: 'bg-emerald-100 text-emerald-700', label: 'Settled' },
+  OVERRIDE: { icon: OctagonX, cls: 'bg-rose-100 text-rose-700', label: 'Override' },
+}
+
+function ActivityLog({ id }: { id: string | null }) {
+  const [filter, setFilter] = useState<'all' | 'decisions' | 'dispatch'>('all')
+  const { data } = useApi<{ items: AuditEntry[]; total: number }>(id ? `/audit?ref=${id}&limit=300` : null, { intervalMs: 4000 })
+  const all = data?.items ?? []
+  const rows = all.filter((e) => filter === 'all' || (filter === 'dispatch' ? ['COMMAND', 'ACK'].includes(e.kind) : !['COMMAND', 'ACK'].includes(e.kind)))
+  return (
+    <Panel
+      className="min-h-0 flex-1"
+      title="Event activity"
+      aside={
+        <div className="flex rounded-md bg-slate-100 p-0.5 text-[10px]">
+          {(['all', 'decisions', 'dispatch'] as const).map((f) => (
+            <button key={f} onClick={() => setFilter(f)} className={cn('rounded px-1.5 py-0.5 capitalize', filter === f ? 'bg-white font-semibold shadow-xs' : 'text-slate-500')}>
+              {f}
+            </button>
+          ))}
+        </div>
+      }
+      bodyClass="p-1.5"
+    >
+      {!id ? (
+        <Empty>Select an event to follow its activity.</Empty>
+      ) : rows.length === 0 ? (
+        <Empty icon={<Loader2 className="size-5 text-slate-300" />}>No activity recorded yet.</Empty>
+      ) : (
+        <FitPager
+          items={rows}
+          rowHeight={46}
+          reserve={34}
+          render={(slice) => (
+            <ol className="relative space-y-0.5">
+              {slice.map((e) => {
+                const m = ACT[e.kind] ?? { icon: CheckCircle2, cls: 'bg-slate-100 text-slate-600', label: e.kind }
+                const Icon = m.icon
+                return (
+                  <li key={e.seq} className="flex gap-2 rounded-md px-1 py-1 hover:bg-slate-50" title={e.message}>
+                    <span className={cn('mt-0.5 grid size-6 shrink-0 place-items-center rounded-full', m.cls)}>
+                      <Icon className="size-3" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                        <span className="font-semibold text-slate-600">{m.label}</span>
+                        <span>{e.actor}</span>
+                        <span className="ml-auto font-mono">{clockS(e.ts)}</span>
+                      </div>
+                      <div className="line-clamp-1 text-[11px] text-slate-700">{e.message}</div>
+                    </div>
+                  </li>
+                )
+              })}
+            </ol>
+          )}
+        />
+      )}
+    </Panel>
   )
 }

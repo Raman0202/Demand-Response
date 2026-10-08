@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
+import { Toaster } from '@/components/layout/Notifications'
 import { TopNav } from '@/components/layout/TopNav'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AdminPage } from '@/pages/AdminPage'
@@ -57,6 +58,7 @@ function Shell({ token }: { token: string }) {
         {page === 'reports' && <ReportsPage />}
         {page === 'admin' && <AdminPage />}
       </main>
+      <Toaster />
     </div>
   )
 }

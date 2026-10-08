@@ -1,5 +1,5 @@
 // Page template shared by every screen: Header → Primary → Visualisation → Exceptions → Actions → Details.
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { AlertTriangle, ArrowRight, Bot, CircleCheck, Eye, Lightbulb, Rocket, Telescope, TriangleAlert } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -16,9 +16,23 @@ export function PageHeader({ title, summary, actions, icon }: { title: string; s
   )
 }
 
-export function Panel({ title, aside, children, className, bodyClass }: { title?: ReactNode; aside?: ReactNode; children: ReactNode; className?: string; bodyClass?: string }) {
+export function Panel({
+  title,
+  aside,
+  children,
+  className,
+  bodyClass,
+  style,
+}: {
+  title?: ReactNode
+  aside?: ReactNode
+  children: ReactNode
+  className?: string
+  bodyClass?: string
+  style?: CSSProperties
+}) {
   return (
-    <section className={cn('flex min-h-0 flex-col rounded-xl border bg-white shadow-xs', className)}>
+    <section style={style} className={cn('flex min-h-0 flex-col rounded-xl border bg-white shadow-xs', className)}>
       {(title || aside) && (
         <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
           <h2 className="text-[13px] font-semibold text-slate-700">{title}</h2>

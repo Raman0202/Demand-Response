@@ -266,7 +266,7 @@ class Runtime:
 
     def _drain(self, now: float) -> None:
         for kind, did, msg in self.engine.log:
-            self.audit.append(now, kind, "ksfp-engine" if kind not in ("APPROVAL",) else "operator", msg, did)
+            self.audit.append(now, kind, "dr-engine" if kind not in ("APPROVAL",) else "operator", msg, did)
         self.engine.log.clear()
         for ev, c in self.commands.events:
             self.dirty_docs[("command", c.id)] = (c.created, c.state, c.to_dict())

@@ -26,6 +26,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Textarea } from '@/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
+import { NotificationBell } from './Notifications'
 import { SEVERITY_STYLE } from '@/lib/ui'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/store/useAuth'
@@ -224,6 +225,7 @@ export function TopNav() {
           </TooltipTrigger>
           <TooltipContent>Real-time stream: {conn}</TooltipContent>
         </Tooltip>
+        <NotificationBell />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 rounded-full py-0.5 pr-2 pl-0.5 ring-1 ring-slate-200 transition hover:bg-slate-50">
