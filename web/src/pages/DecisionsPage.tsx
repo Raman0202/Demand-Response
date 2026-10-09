@@ -91,6 +91,8 @@ interface Full extends DecisionSummary {
       label: string
       description: string
       total_rs: number
+      resource_rs: number
+      residual_dsm_rs: number
       coverage_pct: number
       time_to_effect_min: number | null
       max_line_loading: number
@@ -489,25 +491,172 @@ function EvidenceTab({ d }: { d: Full }) {
   )
 }
 
+// Options compared like-for-like: what each costs (paid to resources + DSM still owed), how much of the need it covers,
+// how fast it acts and what it does to the network — judged against doing nothing — and why the chosen one wins.
 function AltTab({ d }: { d: Full }) {
   const s = d.current.strategies
-  const best = [...s].sort((a, b) => a.total_rs - b.total_rs)[0]
+  const base = s.find((x) => x.id === 'NONE')
+  const byCost = [...s].sort((a, b) => a.total_rs - b.total_rs)
+  const chosen = byCost.find((x) => x.id === 'OPTIMAL') ?? byCost[0]
+  // chosen option pinned first, the rest by total cost; the number shown is the cost rank
+  const rows = [chosen, ...byCost.filter((x) => x.id !== chosen.id)]
+  const costRank = (x: (typeof s)[number]) =>
+    x.id === chosen.id ? 1 + byCost.filter((y) => y.total_rs < chosen.total_rs - Math.max(1000, Math.abs(chosen.total_rs) * 0.005)).length : byCost.indexOf(x) + 1
+  type Opt = (typeof s)[number]
+  const saving = (x: Opt) => (base ? base.total_rs - x.total_rs : 0)
+  // total = paid to resources (incl. rebound and market) + DSM still owed; DSM can be a credit when an option over-covers
+  const paid = (x: Opt) => x.total_rs - x.residual_dsm_rs
+  const scale = Math.max(...s.map((x) => Math.max(paid(x), 0) + Math.max(x.residual_dsm_rs, 0)), 1)
+  const baseLine = base?.max_line_loading ?? 0
+  const pct = (v: number) => `${(v * 100).toFixed(0)}%`
+  const network = (x: Opt): { t: string; tone: 'good' | 'warn' | 'bad' } | null => {
+    if (x.id === 'NONE') return x.max_line_loading > 1 ? { t: `overload ${pct(x.max_line_loading)} today`, tone: 'warn' } : null
+    if (x.max_line_loading > baseLine + 0.005) return { t: `worsens a line to ${pct(x.max_line_loading)}`, tone: 'bad' }
+    if (x.max_line_loading > 1 && x.max_line_loading < baseLine - 0.01) return { t: `relieves overload ${pct(baseLine)} → ${pct(x.max_line_loading)}`, tone: 'good' }
+    if (x.max_line_loading > 1) return { t: `overload remains ${pct(x.max_line_loading)}`, tone: 'warn' }
+    return null
+  }
+  const flags = (x: Opt) => {
+    const out: { t: string; tone: 'good' | 'warn' | 'bad' }[] = []
+    const n = network(x)
+    if (n) out.push(n)
+    if (x.id !== 'NONE' && x.coverage_pct < 90) out.push({ t: x.coverage_pct < 1 ? 'no coverage' : `covers only ${x.coverage_pct.toFixed(0)}%`, tone: 'warn' })
+    if (x.time_to_effect_min != null && x.time_to_effect_min > 15) out.push({ t: `slow (${x.time_to_effect_min.toFixed(0)} min)`, tone: 'warn' })
+    if (x.residual_dsm_rs < -1) out.push({ t: `DSM credit ${fmtRs(-x.residual_dsm_rs)}`, tone: 'good' })
+    return out
+  }
+  const save = saving(chosen)
+  const lineWhy =
+    chosen.max_line_loading <= 1
+      ? 'keeps every line within limits'
+      : chosen.max_line_loading < baseLine - 0.01
+        ? `cuts the worst line from ${pct(baseLine)} to ${pct(chosen.max_line_loading)}`
+        : `leaves the worst line at ${pct(chosen.max_line_loading)}`
+  // when a cheaper option exists, say what it gives up rather than claiming lowest cost
+  const tol = Math.max(1000, Math.abs(chosen.total_rs) * 0.005) // near-ties are equal
+  const cheaper = byCost.filter((x) => x.total_rs < chosen.total_rs - tol && x.id !== 'NONE')
+  const tradeoff = (x: Opt) => {
+    if (x.coverage_pct < chosen.coverage_pct - 5) return `covers only ${x.coverage_pct.toFixed(0)}%`
+    if (x.max_line_loading > chosen.max_line_loading + 0.005) return `loads a line to ${pct(x.max_line_loading)}`
+    if (x.time_to_effect_min != null && chosen.time_to_effect_min != null && x.time_to_effect_min > chosen.time_to_effect_min + 1)
+      return `takes ${x.time_to_effect_min.toFixed(0)} min to act`
+    return null
+  }
+  const why = cheaper.length
+    ? (() => {
+        const c = cheaper[0]
+        const t = tradeoff(c)
+        return t
+          ? `${c.label} is ${fmtRs(chosen.total_rs - c.total_rs)} cheaper but ${t}`
+          : `${c.label} prices ${fmtRs(chosen.total_rs - c.total_rs)} lower in this snapshot; the live plan is re-solved every block against the network`
+      })()
+    : 'Lowest total cost'
+  const chip = { good: 'bg-emerald-100 text-emerald-700', warn: 'bg-amber-100 text-amber-800', bad: 'bg-rose-100 text-rose-700' }
   return (
-    <div className="grid h-full grid-cols-3 grid-rows-2 gap-2">
-      {s.map((x) => (
-        <div key={x.id} className={cn('flex flex-col rounded-xl border p-2.5', x.id === best?.id && 'border-emerald-300 bg-emerald-50/50')}>
-          <div className="flex items-center justify-between text-[12px] font-semibold">
-            {x.label}
-            {x.id === best?.id && <Badge variant="success">chosen class</Badge>}
+    <div className="flex h-full min-h-0 flex-col gap-2.5">
+      <div className="flex shrink-0 items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50/70 px-3 py-2">
+        <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+        <div className="min-w-0 flex-1">
+          <div className="text-[13px] font-semibold text-slate-800">
+            {chosen.label} chosen — {fmtRs(chosen.total_rs)}
+            {base && save > 0 && (
+              <span className="text-emerald-700">
+                {' '}
+                · saves {fmtRs(save)} ({((save / Math.max(base.total_rs, 1)) * 100).toFixed(0)}%) vs doing nothing
+              </span>
+            )}
           </div>
-          <div className="line-clamp-1 text-[10px] text-slate-500">{x.description}</div>
-          <div className="mt-auto font-mono text-[15px] font-semibold">{fmtRs(x.total_rs)}</div>
-          <div className="text-[10px] text-slate-500">
-            coverage {x.coverage_pct.toFixed(0)}% · {x.resources} res · max line {(x.max_line_loading * 100).toFixed(0)}%
-            {x.time_to_effect_min != null && ` · ${x.time_to_effect_min < 1 ? '<1' : x.time_to_effect_min.toFixed(0)} min`}
+          <div className="text-[11px] leading-snug text-slate-600">
+            {why}. Chosen plan covers {chosen.coverage_pct.toFixed(0)}% of the need
+            {chosen.time_to_effect_min != null && ` in ${chosen.time_to_effect_min < 1 ? 'under a minute' : `${chosen.time_to_effect_min.toFixed(0)} min`}`}, {lineWhy}, using{' '}
+            {chosen.resources} resource{chosen.resources === 1 ? '' : 's'}.
           </div>
         </div>
-      ))}
+      </div>
+
+      <div className="min-h-0 flex-1 space-y-1.5 overflow-hidden">
+        {rows.map((x) => {
+          const isChosen = x.id === chosen.id
+          const isBase = x.id === 'NONE'
+          const sv = saving(x)
+          return (
+            <div key={x.id} className={cn('rounded-xl border px-3 py-2', isChosen ? 'border-emerald-200 bg-emerald-50/60' : 'border-slate-200/80 bg-white/70')}>
+              <div className="flex items-center gap-2">
+                <span className="font-mono text-[10px] text-slate-400" title="Rank by total cost">
+                  #{costRank(x)}
+                </span>
+                <span className="text-[12.5px] font-semibold text-slate-800">{x.label}</span>
+                {isChosen && (
+                  <Badge variant="success" className="h-4 px-1.5 text-[9px]">
+                    chosen
+                  </Badge>
+                )}
+                {isBase && (
+                  <Badge variant="outline" className="h-4 px-1.5 text-[9px]">
+                    baseline
+                  </Badge>
+                )}
+                <div className="flex min-w-0 flex-1 flex-wrap gap-1">
+                  {flags(x).map((f) => (
+                    <span key={f.t} className={cn('rounded px-1.5 py-px text-[9.5px] font-semibold', chip[f.tone])}>
+                      {f.t}
+                    </span>
+                  ))}
+                </div>
+                <span className={cn('shrink-0 font-mono text-[13px] font-semibold tabular-nums', isChosen ? 'text-emerald-700' : 'text-slate-800')}>{fmtRs(x.total_rs)}</span>
+              </div>
+              <div className="mt-1.5 flex items-center gap-3">
+                <div className="flex h-2.5 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-100">
+                  <div className="h-full bg-sky-600" style={{ width: `${(Math.max(0, paid(x)) / scale) * 100}%` }} title={`Paid to resources ${fmtRs(paid(x))}`} />
+                  <div
+                    className="h-full bg-amber-400"
+                    style={{ width: `${(Math.max(0, x.residual_dsm_rs) / scale) * 100}%` }}
+                    title={`DSM still owed ${fmtRs(x.residual_dsm_rs)}`}
+                  />
+                </div>
+                <div className="flex shrink-0 items-center gap-3 text-[10.5px] text-slate-500 tabular-nums">
+                  <span>
+                    {isBase ? (
+                      'baseline'
+                    ) : Math.abs(sv) < 1 ? (
+                      'no saving'
+                    ) : (
+                      <>
+                        {sv > 0 ? 'saves ' : 'costs '}
+                        <b className={cn('font-mono', sv > 0 ? 'text-emerald-700' : 'text-rose-600')}>{sv > 0 ? fmtRs(sv) : `+${fmtRs(-sv)}`}</b>
+                      </>
+                    )}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="h-1.5 w-10 overflow-hidden rounded-full bg-slate-100">
+                      <span
+                        className={cn('block h-full rounded-full', x.coverage_pct >= 90 ? 'bg-emerald-500' : x.coverage_pct >= 50 ? 'bg-amber-400' : 'bg-rose-400')}
+                        style={{ width: `${Math.min(100, x.coverage_pct)}%` }}
+                      />
+                    </span>
+                    <b className="font-mono text-slate-700">{x.coverage_pct.toFixed(0)}%</b>
+                  </span>
+                  <span>
+                    acts in{' '}
+                    <b className="font-mono text-slate-700">
+                      {x.time_to_effect_min == null ? '—' : x.time_to_effect_min < 1 ? '<1 min' : `${x.time_to_effect_min.toFixed(0)} min`}
+                    </b>
+                  </span>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-0.5 text-[10px] text-slate-500">
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-3 rounded-sm bg-sky-600" /> paid to resources
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-3 rounded-sm bg-amber-400" /> DSM still owed
+        </span>
+        <span>· savings and network effect measured against doing nothing · {d.current.plan.requirement.length}-block horizon</span>
+      </div>
     </div>
   )
 }

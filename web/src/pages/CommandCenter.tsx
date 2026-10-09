@@ -208,16 +208,8 @@ function DrStrip({ open, onToggle }: { open: boolean; onToggle: () => void }) {
     )
   return (
     <div className="flex shrink-0 gap-2">
-      <div className="pointer-events-auto grid min-w-0 flex-1 grid-cols-6 gap-2">
-        <KpiCard
-          className={g}
-          icon={<Target />}
-          label="Grid need now"
-          value={need > 1 ? `${fmtMW(need)} ${f.direction === 'UP' ? '↓ load' : '↑ load'}` : 'None'}
-          sub={need > 1 ? `ACE ${signed(f.ace)} MW · ${f.frequency.toFixed(2)} Hz` : `ACE ${signed(f.ace)} MW — within band`}
-          tone={f.severity === 'EMERGENCY' ? 'bad' : f.severity === 'ALERT' ? 'warn' : 'good'}
-          onClick={() => go('analysis')}
-        />
+      <div className="pointer-events-auto grid min-w-0 flex-1 grid-cols-7 gap-2">
+        <GridNeedCard className={g} delivering={c.delivering} onOpen={() => go('analysis')} />
         <KpiCard
           className={g}
           icon={<BatteryCharging />}
@@ -269,6 +261,82 @@ function DrStrip({ open, onToggle }: { open: boolean; onToggle: () => void }) {
         />
       </div>
       {toggle}
+    </div>
+  )
+}
+
+/* Grid need: how much, which way, how bad, how much is already covered — and the signals behind it. */
+function GridNeedCard({ className, delivering, onOpen }: { className: string; delivering: number; onOpen: () => void }) {
+  const f = useLive((s) => s.frame)!
+  const ev = f.active_decision
+  // the event's underlying need stays put while flexibility closes the gap; without an event, the instantaneous need
+  const dir = ev ? ev.direction : f.direction
+  const shed = dir === 'UP' ? (f.shedding?.active_mw ?? 0) : 0
+  const remaining = f.direction === dir ? f.requirement : 0
+  const total = ev ? Math.max(ev.requirement_mw, remaining) : f.requirement
+  const covered = Math.min(total, delivering + shed)
+  const pct = total > 1 ? covered / total : 1
+  // no event and severity NORMAL: inside the ±100 MW band the platform deliberately does nothing
+  const balanced = !ev && f.severity === 'NORMAL'
+  const sev = f.severity
+  const sevCls = sev === 'EMERGENCY' ? 'bg-rose-600 text-white' : sev === 'ALERT' ? 'bg-amber-500 text-white' : 'bg-emerald-600 text-white'
+  const ring = sev === 'EMERGENCY' ? 'ring-2 ring-rose-300' : sev === 'ALERT' ? 'ring-2 ring-amber-300' : ''
+  const action = balanced ? 'Within band — no action needed' : dir === 'UP' ? 'Reduce load / add supply' : 'Increase load / back down supply'
+  const drawal = f.drawal - f.schedule
+  const fBad = f.frequency < 49.8 || f.frequency > 50.1
+  const fWarn = f.frequency < 49.9 || f.frequency > 50.05
+  return (
+    <button onClick={onOpen} className={cn('col-span-2 flex min-w-0 gap-3 rounded-xl border px-3 py-2 text-left shadow-md transition hover:shadow-lg', className, ring)}>
+      <div className="flex min-w-0 flex-1 flex-col justify-between gap-1">
+        <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+          <Target className="size-3.5 text-slate-400" /> Grid need
+          <span className={cn('ml-1 rounded px-1.5 py-px text-[9px] font-bold tracking-wide', sevCls)}>{sev}</span>
+          {ev && <span className="truncate text-[10px] text-slate-400">· event {ev.id}</span>}
+        </div>
+        <div className="flex items-baseline gap-2">
+          <span
+            className={cn('font-mono text-xl leading-none font-semibold tabular-nums', balanced ? 'text-emerald-700' : sev === 'EMERGENCY' ? 'text-rose-600' : 'text-amber-700')}
+          >
+            {fmtMW(total)}
+          </span>
+          <span className="truncate text-[12px] font-medium text-slate-700">{action}</span>
+        </div>
+        <div className="truncate text-[10.5px] text-slate-500">
+          {Math.abs(drawal) < 1 ? `On schedule (${fmtMW(f.schedule)})` : `${drawal > 0 ? 'Over' : 'Under'}-drawing ${fmtMW(Math.abs(drawal))} vs schedule ${fmtMW(f.schedule)}`}
+        </div>
+        {balanced ? (
+          <div className="text-[10px] text-emerald-700">The platform opens a DR event when the need stays above 100 MW for a minute.</div>
+        ) : (
+          <div>
+            <div className="flex h-1.5 w-full overflow-hidden rounded-full bg-slate-200/80">
+              <div className="h-full bg-emerald-500" style={{ width: `${(Math.min(delivering, total) / Math.max(total, 1)) * 100}%` }} />
+              {shed > 0 && <div className="h-full bg-rose-500" style={{ width: `${(Math.min(shed, Math.max(0, total - delivering)) / Math.max(total, 1)) * 100}%` }} />}
+            </div>
+            <div className="mt-0.5 flex justify-between text-[10px] text-slate-500">
+              <span>
+                <b className="font-mono text-emerald-700">{(pct * 100).toFixed(0)}%</b> covered{shed > 0 && <span className="text-rose-600"> · incl. {fmtMW(shed)} shed</span>}
+              </span>
+              <span>
+                gap <b className={cn('font-mono', remaining > 100 ? 'text-amber-700' : 'text-slate-700')}>{fmtMW(remaining)}</b>
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+      <div className="flex w-[156px] shrink-0 flex-col justify-center gap-1 border-l border-slate-900/[0.06] pl-3 text-[10.5px] whitespace-nowrap">
+        <Reading label="Frequency" value={`${f.frequency.toFixed(3)} Hz`} tone={fBad ? 'text-rose-600' : fWarn ? 'text-amber-700' : 'text-emerald-700'} />
+        <Reading label="ACE" value={`${signed(f.ace)} MW`} tone={Math.abs(f.ace) >= 300 ? 'text-rose-600' : Math.abs(f.ace) >= 100 ? 'text-amber-700' : 'text-slate-800'} />
+        <Reading label="DSM/block" value={fmtRs(Math.abs(f.dsm_per_block_rs))} tone={f.dsm_per_block_rs > 0 ? 'text-amber-700' : 'text-slate-800'} />
+      </div>
+    </button>
+  )
+}
+
+function Reading({ label, value, tone }: { label: string; value: string; tone: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-1">
+      <span className="text-slate-500">{label}</span>
+      <span className={cn('font-mono font-semibold tabular-nums', tone)}>{value}</span>
     </div>
   )
 }
