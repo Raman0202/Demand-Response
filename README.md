@@ -82,7 +82,7 @@ The status cluster (severity, autonomy level with kill switch, data confidence, 
 - **Act:** signed setpoint commands with ack timeouts, a dead-band and no blind resend. Measurement & verification (M&V) runs per tick, with performance-factor settlement and reliability learning.
 - **Trust:** JWT + RBAC (operator / shift-in-charge / analyst / engineer / admin), and a SHA-256 hash-chained audit log with a verify endpoint. Probes and Prometheus metrics are exposed at `/health`, `/ready` and `/metrics`.
 
-See `docs/ARCHITECTURE.md` for the full design, scaling path and failure modes.
+See `docs/HOW-IT-WORKS.md` for how the loop works, the strategies it weighs and every calculation (with a worked example), and `docs/ARCHITECTURE.md` for the full design, scaling path and failure modes.
 
 ## Caveats
 
