@@ -55,7 +55,12 @@ export function LoginPage() {
           </ul>
         </div>
         <form onSubmit={submit} className="space-y-4 p-8">
-          <h2 className="text-lg font-semibold">Sign in</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">Sign in</h2>
+            <a href="#" className="text-xs text-sky-700 hover:underline">
+              ← Product overview
+            </a>
+          </div>
           {notice && <div className="rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-800">{notice}</div>}
           <div className="space-y-1.5">
             <Label htmlFor="u">Username</Label>

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Toaster } from '@/components/layout/Notifications'
 import { TopNav } from '@/components/layout/TopNav'
@@ -9,6 +9,7 @@ import { AlarmsPage } from '@/pages/AlarmsPage'
 import { AnalysisPage } from '@/pages/AnalysisPage'
 import { CommandCenter } from '@/pages/CommandCenter'
 import { DecisionsPage } from '@/pages/DecisionsPage'
+import { LandingPage } from '@/pages/LandingPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { OperationsPage } from '@/pages/OperationsPage'
 import { ReportsPage } from '@/pages/ReportsPage'
@@ -19,9 +20,23 @@ import { useAuth } from '@/store/useAuth'
 import { useLive } from '@/store/useLive'
 import { useUI } from '@/store/useUI'
 
+/** Public front door: the landing page, or the sign-in form at #/login (also shown when a session has expired). */
+function useHash() {
+  const [hash, setHash] = useState(location.hash)
+  useEffect(() => {
+    const on = () => setHash(location.hash)
+    window.addEventListener('hashchange', on)
+    return () => window.removeEventListener('hashchange', on)
+  }, [])
+  return hash
+}
+
 export default function App() {
   const token = useAuth((s) => s.token)
-  return <TooltipProvider>{token ? <Shell token={token} /> : <LoginPage />}</TooltipProvider>
+  const notice = useAuth((s) => s.notice)
+  const hash = useHash()
+  const view = token ? <Shell token={token} /> : hash === '#/login' || notice ? <LoginPage /> : <LandingPage />
+  return <TooltipProvider>{view}</TooltipProvider>
 }
 
 function Shell({ token }: { token: string }) {

@@ -1,0 +1,170 @@
+WEBVTT
+
+1
+00:00:00.700 --> 00:00:04.570
+Every second, a power grid has to balance supply and demand.
+
+2
+00:00:04.570 --> 00:00:10.439
+When it can't, the control room pays penalties, risks the frequency, or cuts customers off.
+
+3
+00:00:10.439 --> 00:00:12.825
+This is the Demand Response Platform.
+
+4
+00:00:12.825 --> 00:00:17.340
+It turns flexible demand into a grid resource, and runs it end to end.
+
+5
+00:00:18.440 --> 00:00:22.353
+Deviations from schedule are charged under the DSM regulations.
+
+6
+00:00:22.353 --> 00:00:25.646
+Renewables swing by hundreds of megawatts in minutes.
+
+7
+00:00:25.646 --> 00:00:28.503
+Transmission lines congest in specific places.
+
+8
+00:00:28.503 --> 00:00:31.733
+And the last resort, load shedding, means blackouts.
+
+9
+00:00:31.733 --> 00:00:39.560
+Flexible consumers can solve all of this, if someone can call on them fast, in the right place, and prove what they delivered.
+
+10
+00:00:40.660 --> 00:00:42.850
+The Overview is a spatial workspace.
+
+11
+00:00:42.850 --> 00:00:52.160
+The live grid fills the screen: substations, transmission corridors, every two-hundred-and-twenty kilovolt station, generation and flexible participants.
+
+12
+00:00:52.160 --> 00:01:01.225
+The numbers an operator watches float above it: the grid's need, the flexibility available, what is dispatched, and what is actually being delivered.
+
+13
+00:01:02.325 --> 00:01:06.484
+Here, a demand surge in Bengaluru pushes the state into over-drawal.
+
+14
+00:01:06.484 --> 00:01:11.989
+The platform detects it, forecasts where it is heading, and opens a demand-response event.
+
+15
+00:01:11.989 --> 00:01:22.997
+On the right, it answers the four operator questions: what is happening, what is at risk, what happens next, and what the system intends to do, explained from situation to outcome.
+
+16
+00:01:24.097 --> 00:01:30.316
+Select anything, an alarm, a line, a participant, or the event itself, and the camera flies there.
+
+17
+00:01:30.316 --> 00:01:36.471
+The affected corridors and participants light up, and a detail card sits right beside the object.
+
+18
+00:01:37.571 --> 00:01:45.681
+The optimiser picks the cheapest reliable mix of batteries, flexible loads and generation, within network limits, in milliseconds.
+
+19
+00:01:45.681 --> 00:01:48.239
+A digital twin checks every action first.
+
+20
+00:01:48.239 --> 00:01:51.858
+Inside its autonomy envelope the platform acts on its own.
+
+21
+00:01:51.858 --> 00:01:57.348
+Larger moves wait for the operator, with dual authorisation above two hundred megawatts.
+
+22
+00:01:57.348 --> 00:02:01.528
+Then signed commands go out, and delivery responds live on the map.
+
+23
+00:02:02.628 --> 00:02:14.297
+Every event keeps its own record: target, dispatched and delivered over time, performance against baseline, the participants, the options that were considered, the safety checks, and a live activity log.
+
+24
+00:02:15.397 --> 00:02:25.976
+Programmes organise the flexibility: interruptible load, industrial curtailment, load shifting, distributed energy and electric vehicles, batteries, and supply-side flex.
+
+25
+00:02:25.976 --> 00:02:32.635
+Choose one, and its participants light up on the map, with availability, reliability and price at a glance.
+
+26
+00:02:33.735 --> 00:02:35.185
+Any event can be replayed.
+
+27
+00:02:35.185 --> 00:02:41.543
+Scrub the timeline, and the map shows exactly who was dispatched, when they acknowledged, and what they delivered.
+
+28
+00:02:42.643 --> 00:02:56.211
+When an event closes, delivery is measured against each participant's baseline, payments are adjusted for performance, reliability is learned for next time, and every step is written to a tamper-evident, hash-chained audit trail.
+
+29
+00:02:57.311 --> 00:02:59.469
+And when flexibility is not enough?
+
+30
+00:02:59.469 --> 00:03:07.422
+The platform proposes rotational load shedding, but only for the over-drawal that flexibility cannot cover, and never on its own.
+
+31
+00:03:07.422 --> 00:03:09.641
+A shift-in-charge has to approve it.
+
+32
+00:03:10.741 --> 00:03:15.376
+Non-essential feeders are rostered fairly across the distribution companies.
+
+33
+00:03:15.376 --> 00:03:19.157
+Spells are limited to forty-five minutes, and two hours a day.
+
+34
+00:03:19.157 --> 00:03:24.950
+Hospitals, water works, railway traction and defence are never shed, and restoration is staged.
+
+35
+00:03:24.950 --> 00:03:28.853
+Paid flexibility stays on, so shedding is always released first.
+
+36
+00:03:29.953 --> 00:03:33.912
+Every two-hundred-and-twenty kilovolt feeder is live on the map.
+
+37
+00:03:33.912 --> 00:03:39.788
+Shed areas turn red, and each station shows its roster group and the loads that stay protected.
+
+38
+00:03:40.888 --> 00:03:48.671
+Forecasts carry their uncertainty, predicted violations are flagged ahead of time, and data quality is checked continuously.
+
+39
+00:03:48.671 --> 00:03:52.813
+When confidence drops, autonomy steps back to advisory on its own.
+
+40
+00:03:53.913 --> 00:04:03.663
+Autonomy is a policy, not a leap of faith: monitor, advisory, supervised, or autonomous, with a kill switch, role-based access, and full traceability.
+
+41
+00:04:04.763 --> 00:04:06.439
+Demand Response Platform.
+
+42
+00:04:06.439 --> 00:04:11.333
+Detect, decide, dispatch and verify, with the operator always in control.
+

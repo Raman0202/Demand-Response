@@ -51,6 +51,10 @@ Demo accounts (password = username + `123`): `operator`, `sic` (shift-in-charge)
 
 Hybrid mode needs outbound HTTPS to `kptclsldc.in` from the API host. If a page can't be fetched, its channels stay simulated, and Administration → Data sources shows per-page health and any unmapped rows.
 
+## Landing page & overview video
+
+Visitors who aren't signed in see a public landing page: what the platform does, how the loop works, load shedding, governance, trust & standards, architecture, and a narrated **4-minute product overview video** (`web/public/media/demand-response-overview.mp4` with a WebM fallback and English captions). "Sign in" opens the console at `#/login`. The video is generated from the live product — see `docs/video/README.md` to regenerate it.
+
 ## Operator experience
 
 Enterprise palette (navy-azure brand, steel neutrals; green, ochre and crimson reserved for status) defined once as design tokens in `web/src/index.css`. Spatial UI: the map is the primary workspace and every page uses glass panels over a soft spatial backdrop (see `.claude/skills/ui-style-selection`). Top-bar navigation follows the DR workflow (no sidebar, no vertical scrolling, no page titles; the selected tab names the page):
