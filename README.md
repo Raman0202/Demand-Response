@@ -53,18 +53,18 @@ Hybrid mode needs outbound HTTPS to `kptclsldc.in` from the API host. If a page 
 
 ## Operator experience
 
-Top-bar navigation follows the DR workflow (no sidebar, no vertical scrolling, no page titles; the selected tab names the page):
+Spatial UI: the map is the primary workspace and every page uses glass panels over a soft spatial backdrop (see `.claude/skills/ui-style-selection`). Top-bar navigation follows the DR workflow (no sidebar, no vertical scrolling, no page titles; the selected tab names the page):
 
 | Module | What the operator gets |
 | --- | --- |
-| **Overview** | Headline DR numbers: grid need, flexibility available, dispatched, delivering, participants online, event/value. Then four panels: *Now* (live 3D territory map), *At risk* (prioritised alarms), *Next* (P10–P90 forecast, predicted violations), *Intent* (what the system is doing, explained as Situation → Impact → Prediction → Recommendation → Action → Outcome, with Approve) |
-| **DR Events** | Event log with delivery progress. Per event: target / dispatched / delivering / performance / duration / value, a live target-vs-dispatched-vs-delivered curve, and tabs for participants, grid need, options compared, safety checks, dispatch commands, revisions and settlement. Approve, reject or abort with reasons |
-| **Programs** | Interruptible load, C&I curtailment, load shifting, DER & EV, battery storage and supply-side flex. Each shows available vs contracted MW, participants online, reliability and price. Below: the participant registry with live setpoint → delivery, telemetry and take-out-of-service |
+| **Overview** (spatial workspace) | The live 3D territory map fills the screen; everything else floats over it as collapsible glass panels. Headline DR numbers on top (grid need, flexibility available, dispatched, delivering, participants online, event/value); *At risk*, *Next* and *Intent* (Situation → Impact → Prediction → Recommendation → Action → Outcome, with Approve) on the right. Selecting anything (a DR event, participant, substation, alarm, predicted overload, overloaded line) flies the camera there, pins a detail card beside it and lights up the affected lines and participants. The active DR event plays out on the map — dispatch going out to participants, acknowledgements and delivery — with a timeline along the bottom you can scrub, replay or snap back to live |
+| **DR Events** | Today's summary, the event log with delivery progress and a live activity log (re-plans, approvals, signed dispatch, acks, settlement). Per event: target / dispatched / delivering / performance / duration / value, a target-vs-dispatched-vs-delivered curve, tabs for participants, grid need, options, safety checks, dispatch, revisions and settlement, and **Show / Replay on map**. Approve, reject or abort with reasons |
+| **Programs** | Programme cards (available vs contracted MW, participants online, reliability, price, terms). Picking a programme lights up its participants on the map beside the registry; clicking a participant flies to it |
 | **Grid** | Network loading, resources in action, every 220 kV load channel by DISCOM (live vs simulated) and every generating station, on the 3D map |
 | **Forecast** | ACE / demand / renewables P10–P50–P90, predicted violations, recent behaviour, forecast accuracy |
 | **Alarms** | ISA-18.2 style alarms (on/off delays, ack, shelve with reason) correlated into incidents |
 | More → **What-if** | Run a hypothetical event on a copy of live state: strategies, optimal plan, safety gate; nothing is dispatched |
-| More → **Settlement & Audit** | Settled events, energy vs baseline, payments, net benefit, participant reliability, and the hash-chained audit trail with one-click verification |
+| More → **Settlement & Audit** | Settled events (each can be replayed on the map), energy vs baseline, payments, net benefit, participant reliability, and the hash-chained audit trail with one-click verification |
 | More → **Administration** | Autonomy level and L2 envelope, dual-authorisation threshold, data-source health, simulator drills, DSM rule table, users and roles |
 
 The status cluster (severity, autonomy level with kill switch, data confidence, clock, stream health, user) is always visible.

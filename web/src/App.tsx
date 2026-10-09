@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
 import { Toaster } from '@/components/layout/Notifications'
 import { TopNav } from '@/components/layout/TopNav'
+import { cn } from '@/lib/utils'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { AdminPage } from '@/pages/AdminPage'
 import { AlarmsPage } from '@/pages/AlarmsPage'
@@ -47,7 +48,7 @@ function Shell({ token }: { token: string }) {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <TopNav />
-      <main key={page} className="min-h-0 flex-1 overflow-hidden p-3 animate-in fade-in duration-200">
+      <main key={page} className={cn('min-h-0 flex-1 overflow-hidden animate-in fade-in duration-200', page === 'command' ? 'p-0' : 'spatial-backdrop p-3')}>
         {page === 'command' && <CommandCenter />}
         {page === 'operations' && <OperationsPage />}
         {page === 'decisions' && <DecisionsPage />}

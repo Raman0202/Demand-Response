@@ -1,7 +1,7 @@
 // DR Events — every event the platform opened: need, dispatch, delivery vs baseline, value. Approve / reject / abort with full evidence.
 import { useState } from 'react'
 import { Area, Bar as RBar, CartesianGrid, ComposedChart, Legend, Line, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts'
-import { AlertTriangle, Ban, Brain, Check, CheckCircle2, Loader2, OctagonX, Receipt, Send, UserCheck, XCircle, Zap } from 'lucide-react'
+import { AlertTriangle, Ban, Brain, MapPin, Check, CheckCircle2, Loader2, OctagonX, Receipt, Send, UserCheck, XCircle, Zap } from 'lucide-react'
 import { Calc, FitPager, SectionTabs } from '@/components/common'
 import { Empty, Panel, Stat, StoryChain } from '@/components/page'
 import { Badge } from '@/components/ui/badge'
@@ -237,6 +237,7 @@ export function DecisionsPage() {
 
 function DecisionDetail({ id }: { id: string }) {
   const { data: d, reload } = useApi<Full>(`/decisions/${id}`, { intervalMs: 4000 })
+  const showEvent = useUI((s) => s.showEvent)
   const can = useAuth((s) => s.can)
   const user = useAuth((s) => s.user)
   const [dlg, setDlg] = useState<null | 'reject' | 'abort'>(null)
@@ -288,6 +289,9 @@ function DecisionDetail({ id }: { id: string }) {
             {busy ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />} {d.approvals.length ? 'Second approval' : `Approve ${d.awaiting_mw.toFixed(0)} MW`}
           </Button>
         )}
+        <Button size="sm" variant="outline" className="bg-white/70" onClick={() => showEvent(d.id, cur?.allocations.map((a) => a.id) ?? [], open ? null : d.opened_at)}>
+          <MapPin className="size-4" /> {open ? 'Show on map' : 'Replay on map'}
+        </Button>
         {d.state === 'AWAITING_APPROVAL' && can('reject') && (
           <Button size="sm" variant="outline" onClick={() => setDlg('reject')}>
             <Ban className="size-4" /> Reject

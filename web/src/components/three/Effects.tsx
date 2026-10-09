@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
 import { useFrame, useThree } from '@react-three/fiber'
 import { Line, OrbitControls } from '@react-three/drei'
@@ -108,19 +108,25 @@ export function CameraRig() {
   const { camera } = useThree()
   const camPreset = useUIStore((s) => s.camera)
   const nonce = useUIStore((s) => s.cameraNonce)
+  const fly = useUIStore((s) => s.fly)
   const anim = useRef<{ t: number; fromPos: THREE.Vector3; fromTarget: THREE.Vector3; toPos: THREE.Vector3; toTarget: THREE.Vector3 } | null>(null)
 
+  // a fly-to (selection) wins over the preset; both animate from wherever the camera is now
   useEffect(() => {
-    const p = PRESETS[camPreset]
     if (!controls.current) return
-    anim.current = {
-      t: 0,
-      fromPos: camera.position.clone(),
-      fromTarget: controls.current.target.clone(),
-      toPos: new THREE.Vector3(...p.pos),
-      toTarget: new THREE.Vector3(...p.target),
+    let toPos: THREE.Vector3
+    let toTarget: THREE.Vector3
+    if (fly) {
+      toTarget = new THREE.Vector3(fly.x, 0, fly.z)
+      // keep a consistent oblique view from the south-east so labels stay readable
+      toPos = new THREE.Vector3(fly.x + fly.dist * 0.18, fly.dist * 0.95, fly.z + fly.dist * 0.72)
+    } else {
+      const p = PRESETS[camPreset]
+      toPos = new THREE.Vector3(...p.pos)
+      toTarget = new THREE.Vector3(...p.target)
     }
-  }, [camPreset, nonce, camera])
+    anim.current = { t: 0, fromPos: camera.position.clone(), fromTarget: controls.current.target.clone(), toPos, toTarget }
+  }, [camPreset, nonce, fly, camera])
 
   useFrame((_, dt) => {
     const a = anim.current
@@ -134,4 +140,72 @@ export function CameraRig() {
   })
 
   return <OrbitControls ref={controls} makeDefault enableDamping dampingFactor={0.08} minDistance={1.2} maxDistance={22} maxPolarAngle={Math.PI / 2.15} target={[0, 0, 0.4]} />
+}
+
+/** Light beams over affected participants (selection context): a soft column plus a pulsing ground ring. */
+export function Beacons({ points, color = '#0ea5e9' }: { points: { id: string; lon: number; lat: number }[]; color?: string }) {
+  const rings = useRef<(THREE.Mesh | null)[]>([])
+  useFrame(({ clock }) => {
+    rings.current.forEach((m, i) => {
+      if (!m) return
+      const k = (clock.elapsedTime * 0.7 + i * 0.17) % 1
+      m.scale.setScalar(0.6 + k * 1.6)
+      ;(m.material as THREE.MeshBasicMaterial).opacity = 0.55 * (1 - k)
+    })
+  })
+  return (
+    <group>
+      {points.map((p, i) => {
+        const [x, z] = project(p.lon, p.lat)
+        return (
+          <group key={p.id} position={[x, STATE_TOP, z]}>
+            <mesh position={[0, 0.45, 0]}>
+              <cylinderGeometry args={[0.012, 0.05, 0.9, 12, 1, true]} />
+              <meshBasicMaterial color={color} transparent opacity={0.28} toneMapped={false} depthWrite={false} side={THREE.DoubleSide} />
+            </mesh>
+            <mesh ref={(el) => (rings.current[i] = el)} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
+              <ringGeometry args={[0.1, 0.13, 40]} />
+              <meshBasicMaterial color={color} transparent opacity={0.5} toneMapped={false} depthWrite={false} side={THREE.DoubleSide} />
+            </mesh>
+          </group>
+        )
+      })}
+    </group>
+  )
+}
+
+/** Positions a DOM card beside the screen projection of a world point, clamped inside the viewport. */
+function placeCard(
+  d: HTMLDivElement,
+  point: [number, number, number] | null,
+  camera: THREE.Camera,
+  size: { width: number; height: number },
+  v: THREE.Vector3,
+  side: 'right' | 'left',
+) {
+  if (!point) {
+    d.style.opacity = '0'
+    return
+  }
+  v.set(...point).project(camera)
+  const px = ((v.x + 1) / 2) * size.width
+  const py = ((1 - v.y) / 2) * size.height
+  const w = d.offsetWidth
+  const h = d.offsetHeight
+  const gap = 22
+  let x = side === 'right' ? px + gap : px - gap - w
+  if (x + w > size.width - 8) x = px - gap - w
+  if (x < 8) x = Math.min(size.width - w - 8, px + gap)
+  const y = Math.max(8, Math.min(size.height - h - 8, py - h / 2))
+  d.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`
+  d.style.opacity = v.z > 1 ? '0' : '1'
+}
+
+/** Keeps a DOM card pinned beside a world-space point (updated imperatively every frame, like the label layer). */
+export function AnchorProjector({ point, el, side = 'right' }: { point: [number, number, number] | null; el: RefObject<HTMLDivElement | null>; side?: 'right' | 'left' }) {
+  const v = useMemo(() => new THREE.Vector3(), [])
+  useFrame(({ camera, size }) => {
+    if (el.current) placeCard(el.current, point, camera, size, v, side)
+  })
+  return null
 }

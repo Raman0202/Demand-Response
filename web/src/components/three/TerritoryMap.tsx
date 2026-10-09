@@ -1,4 +1,4 @@
-import { Suspense, useMemo, useRef } from 'react'
+import { Suspense, useMemo, useRef, type ReactNode, type Ref } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { Grid } from '@react-three/drei'
 import { Battery, Cable, Diamond, Factory, Layers, Map as MapIcon, Mountain, RadioTower, Tag, Waves, X, Zap } from 'lucide-react'
@@ -8,11 +8,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { ASSET_TYPE_META, ASSETS, BUS_BY_ID, BUSES, DISCOM_COLORS, GEN_STATIONS, GENERATORS, LINES, LOAD_CHANNELS, SLDC, lineLabel } from '@/data/topology'
 import type { Asset, Frame } from '@/data/types'
 import { fmtMW, loadingColor, project, STATE_TOP } from '@/lib/geo'
+import { affected, worldOf, type Sel } from '@/lib/spatial'
 import { cn } from '@/lib/utils'
 import { useLive } from '@/store/useLive'
 import { useUI, type CameraPreset, type MapLayers, type Selection } from '@/store/useUI'
 import { GenStations, LoadChannels } from './Channels'
-import { CameraRig, CommandWave, type DispatchPhase, type WaveTarget } from './Effects'
+import { AnchorProjector, Beacons, CameraRig, CommandWave, type DispatchPhase, type WaveTarget } from './Effects'
 import { STATUS_COLOR, type Focus } from './focus'
 import { GridLines } from './GridLines'
 import { LabelLayer, LabelProjector, type MapLabel } from './Labels'
@@ -25,16 +26,44 @@ export interface MapOverlay {
   highlightLines?: string[]
   wave?: { targets: WaveTarget[]; phase: DispatchPhase }
   caption?: string
+  /** participants to light up regardless of selection (e.g. a programme's members) */
+  lit?: string[]
 }
 
-export function TerritoryMap({ overlay, className, compact }: { overlay?: MapOverlay; className?: string; compact?: boolean }) {
+export interface MapChrome {
+  /** full-bleed workspace: no frame, chrome positioned by the page */
+  bare?: boolean
+  toolbarClass?: string
+  legendClass?: string
+  hideLegend?: boolean
+  /** actions rendered in the anchored detail card */
+  cardActions?: (sel: Sel) => ReactNode
+  /** override the card's rows (e.g. replayed values); return null to use the live description */
+  cardRows?: (sel: Sel) => [string, string][] | null
+}
+
+export function TerritoryMap({ overlay, className, compact, chrome }: { overlay?: MapOverlay; className?: string; compact?: boolean; chrome?: MapChrome }) {
   const frame = useLive((s) => s.frame)
   const layers = useUI((s) => s.layers)
   if (!frame) return <div className={cn('grid h-full place-items-center rounded-xl border bg-[#f1f5fb] text-sm text-muted-foreground', className)}>Waiting for live state…</div>
-  return <MapInner frame={frame} overlay={overlay} className={className} compact={compact} layers={layers} />
+  return <MapInner frame={frame} overlay={overlay} className={className} compact={compact} layers={layers} chrome={chrome ?? {}} />
 }
 
-function MapInner({ frame, overlay, className, compact, layers }: { frame: Frame; overlay?: MapOverlay; className?: string; compact?: boolean; layers: MapLayers }) {
+function MapInner({
+  frame,
+  overlay,
+  className,
+  compact,
+  layers,
+  chrome,
+}: {
+  frame: Frame
+  overlay?: MapOverlay
+  className?: string
+  compact?: boolean
+  layers: MapLayers
+  chrome: MapChrome
+}) {
   const loading = overlay?.loading ?? frame.loading
   // live BESS SoC from telemetry drives the 3D battery fill
   const assets: Asset[] = useMemo(
@@ -51,7 +80,23 @@ function MapInner({ frame, overlay, className, compact, layers }: { frame: Frame
     return f
   }, [overlay?.focus, frame.live_setpoints, frame.assets])
 
+  // selection context: what the selected thing touches lights up
+  const selection = useUI((s) => s.selection)
+  const aff = useMemo(
+    () => (selection ? affected(selection, Object.keys(overlay?.focus ?? {}), overlay?.highlightLines ?? []) : { lines: [], assets: [] }),
+    [selection, overlay?.focus, overlay?.highlightLines],
+  )
+  const highlight = useMemo(() => [...new Set([...(overlay?.highlightLines ?? []), ...aff.lines])], [overlay?.highlightLines, aff.lines])
+  const beacons = useMemo(() => {
+    const ids = new Set([...aff.assets, ...(overlay?.lit ?? [])])
+    return ASSETS.filter((a) => ids.has(a.id) && a.type !== 'generation')
+  }, [aff.assets, overlay?.lit])
+
   const labelLayer = useRef<HTMLDivElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
+  const hoverRef = useRef<HTMLDivElement>(null)
+  const hovered = useUI((s) => s.hovered)
+  const hoverSel = hovered && !(selection && selection.kind === hovered.kind && selection.id === hovered.id) ? hovered : null
   const labels = useMapLabels(layers, frame.injections, focus)
   const stress = useMemo(() => {
     const out: Record<string, number> = {}
@@ -64,7 +109,7 @@ function MapInner({ frame, overlay, className, compact, layers }: { frame: Frame
   }, [loading])
 
   return (
-    <div className={cn('relative h-full min-h-[280px] w-full overflow-hidden rounded-xl border bg-[#f1f5fb]', className)}>
+    <div className={cn('relative h-full min-h-[280px] w-full overflow-hidden bg-[#f1f5fb]', !chrome.bare && 'rounded-xl border', className)}>
       <Canvas flat camera={{ position: [0.4, 11.2, 8.8], fov: 42, near: 0.05, far: 200 }} dpr={[1, 2]} gl={{ antialias: true }}>
         <color attach="background" args={['#f1f5fb']} />
         <fog attach="fog" args={['#f1f5fb', 16, 34]} />
@@ -86,7 +131,7 @@ function MapInner({ frame, overlay, className, compact, layers }: { frame: Frame
           />
           <StateShape />
           {layers.heat && <HeatLayer busLoad={frame.bus_load} stress={stress} />}
-          {layers.grid && <GridLines flows={frame.flows} loading={loading} outaged={frame.outaged} showFlows={layers.flows} highlight={overlay?.highlightLines} />}
+          {layers.grid && <GridLines flows={frame.flows} loading={loading} outaged={frame.outaged} showFlows={layers.flows} highlight={highlight} />}
           {layers.grid && <Substations stress={stress} />}
           {layers.ch220 && <LoadChannels channels={frame.channels} />}
           {layers.genStations && <GenStations channels={frame.channels} />}
@@ -95,20 +140,23 @@ function MapInner({ frame, overlay, className, compact, layers }: { frame: Frame
           {layers.ties && <TieArrows />}
           <SldcBeacon />
           {overlay?.wave && <CommandWave targets={overlay.wave.targets} phase={overlay.wave.phase} />}
+          {beacons.length > 0 && <Beacons points={beacons} />}
           <CameraRig />
           <LabelProjector labels={labels} layer={labelLayer} />
+          <AnchorProjector point={anchorPoint(selection, Object.keys(overlay?.focus ?? {}))} el={cardRef} />
+          <AnchorProjector point={anchorPoint(hoverSel, [])} el={hoverRef} />
         </Suspense>
       </Canvas>
       <LabelLayer labels={labels} layer={labelLayer} />
-      <MapToolbar compact={compact} />
-      <HoverCard frame={frame} loading={loading} />
-      {!compact && <Legend frame={frame} />}
+      <MapToolbar compact={compact} className={chrome.toolbarClass} />
+      <AnchoredCard ref={hoverRef} sel={hoverSel} frame={frame} loading={loading} hover />
+      <AnchoredCard ref={cardRef} sel={selection} frame={frame} loading={loading} actions={chrome.cardActions} rowsFor={chrome.cardRows} affectedCount={aff.assets.length} />
+      {!compact && !chrome.hideLegend && <Legend frame={frame} className={chrome.legendClass} />}
       {overlay?.caption && (
         <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white/90 px-3 py-1 text-xs text-slate-700 shadow-sm ring-1 ring-slate-900/10">
           {overlay.caption}
         </div>
       )}
-      <Inspector frame={frame} loading={loading} />
     </div>
   )
 }
@@ -134,13 +182,13 @@ const LAYER_DEFS: { k: keyof MapLayers; label: string; icon: typeof Zap }[] = [
   { k: 'labels', label: 'Labels', icon: Tag },
 ]
 
-function MapToolbar({ compact }: { compact?: boolean }) {
+function MapToolbar({ compact, className }: { compact?: boolean; className?: string }) {
   const cam = useUI((s) => s.camera)
   const setCamera = useUI((s) => s.setCamera)
   const layers = useUI((s) => s.layers)
   const toggle = useUI((s) => s.toggleLayer)
   return (
-    <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5">
+    <div className={cn('absolute top-2.5 left-2.5 flex flex-col gap-1.5', className)}>
       <div className="flex flex-wrap gap-0.5 rounded-lg bg-white/90 p-1 shadow-sm ring-1 ring-slate-900/10 backdrop-blur">
         <MapIcon className="mx-1 size-3.5 self-center text-sky-600" />
         {CAMS.map((c) => (
@@ -176,10 +224,15 @@ function MapToolbar({ compact }: { compact?: boolean }) {
   )
 }
 
-function Legend({ frame }: { frame: Frame }) {
+function Legend({ frame, className }: { frame: Frame; className?: string }) {
   const live = Object.values(frame.channels).filter((c) => c.src === 'KPTCL').length
   return (
-    <div className="pointer-events-none absolute bottom-2.5 left-2.5 rounded-lg bg-white/90 p-2 text-[10px] text-slate-600 shadow-sm ring-1 ring-slate-900/10 backdrop-blur">
+    <div
+      className={cn(
+        'pointer-events-none absolute bottom-2.5 left-2.5 rounded-lg bg-white/90 p-2 text-[10px] text-slate-600 shadow-sm ring-1 ring-slate-900/10 backdrop-blur',
+        className,
+      )}
+    >
       <div className="flex gap-2">
         {[
           ['<75%', 0.5],
@@ -286,6 +339,21 @@ function describe(sel: NonNullable<Selection>, frame: Frame, loading: Record<str
       ],
     }
   }
+  if (sel.kind === 'event') {
+    const d = frame.active_decision?.id === sel.id ? frame.active_decision : null
+    return {
+      title: `DR event ${sel.id}`,
+      sub: d ? `${d.severity} · ${d.direction === 'UP' ? 'load reduction' : 'load increase'} · rev ${d.revision}` : 'closed event',
+      rows: d
+        ? [
+            ['State', d.state.replace('_', ' ')],
+            ['Target', fmtMW(d.requirement_mw)],
+            ['Dispatched', fmtMW(d.planned_mw)],
+            ['Delivering', fmtMW(d.delivered_mw)],
+          ]
+        : [['Status', 'See DR Events for settlement']],
+    }
+  }
   const a = ASSETS.find((x) => x.id === sel.id)!
   const st = frame.assets[a.id]
   const sp = frame.live_setpoints[a.id] ?? 0
@@ -302,55 +370,76 @@ function describe(sel: NonNullable<Selection>, frame: Frame, loading: Record<str
   }
 }
 
-function HoverCard({ frame, loading }: { frame: Frame; loading: Record<string, number> }) {
-  const hovered = useUI((s) => s.hovered)
-  const selection = useUI((s) => s.selection)
-  if (!hovered || (selection && selection.kind === hovered.kind && selection.id === hovered.id)) return null
-  const d = describe(hovered, frame, loading)
-  return (
-    <div className="pointer-events-none absolute top-2.5 right-2.5 w-60 rounded-lg bg-white/95 p-2.5 text-xs shadow ring-1 ring-slate-900/10 backdrop-blur">
-      <div className="font-semibold text-slate-800">{d.title}</div>
-      <div className="mb-1.5 text-[10px] text-slate-500">{d.sub}</div>
-      {d.rows.map(([k, v]) => (
-        <div key={k} className="flex justify-between gap-2 py-0.5">
-          <span className="text-slate-500">{k}</span>
-          <span className="truncate font-medium tabular-nums">{v}</span>
-        </div>
-      ))}
-    </div>
-  )
+function anchorPoint(sel: Selection, eventAssets: string[]): [number, number, number] | null {
+  if (!sel) return null
+  const w = worldOf(sel, eventAssets)
+  return w ? [w.x, STATE_TOP + 0.25, w.z] : null
 }
 
-function Inspector({ frame, loading }: { frame: Frame; loading: Record<string, number> }) {
-  const selection = useUI((s) => s.selection)
+const AnchoredCard = ({
+  ref,
+  sel,
+  frame,
+  loading,
+  hover,
+  actions,
+  rowsFor,
+  affectedCount = 0,
+}: {
+  rowsFor?: (sel: Sel) => [string, string][] | null
+  ref: Ref<HTMLDivElement>
+  sel: Selection
+  frame: Frame
+  loading: Record<string, number>
+  hover?: boolean
+  actions?: (sel: Sel) => ReactNode
+  affectedCount?: number
+}) => {
   const select = useUI((s) => s.select)
-  if (!selection) return null
-  const d = describe(selection, frame, loading)
-  const bad = d.rows.some(([, v]) => String(v).startsWith('LOST') || v === 'OUTAGE')
+  const base = sel ? describe(sel, frame, loading) : null
+  const over = sel && rowsFor ? rowsFor(sel) : null
+  const d = base && over ? { ...base, rows: over } : base
+  const bad = d?.rows.some(([, v]) => String(v).startsWith('LOST') || v === 'OUTAGE')
   return (
-    <div className="absolute top-2.5 right-2.5 w-72 rounded-xl bg-white/95 p-3 text-xs shadow-md ring-1 ring-sky-300 backdrop-blur">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <div className="text-sm font-semibold text-slate-800">{d.title}</div>
-          <div className="text-[11px] text-slate-500">{d.sub}</div>
-        </div>
-        <Button size="icon" variant="ghost" className="size-6" onClick={() => select(null)}>
-          <X className="size-3.5" />
-        </Button>
-      </div>
-      {bad && (
-        <Badge variant="destructive" className="mt-2">
-          Attention required
-        </Badge>
-      )}
-      <div className="mt-2 divide-y divide-slate-100">
-        {d.rows.map(([k, v]) => (
-          <div key={k} className="flex justify-between gap-2 py-1">
-            <span className="text-slate-500">{k}</span>
-            <span className="font-medium tabular-nums">{v}</span>
+    <div
+      ref={ref}
+      className={cn('absolute top-0 left-0 z-20 opacity-0 transition-opacity duration-150 will-change-transform', hover ? 'pointer-events-none w-56' : 'w-72', !d && 'invisible')}
+    >
+      {d && sel && (
+        <div
+          className={cn(
+            'relative rounded-xl border border-white/70 bg-white/85 p-3 text-xs shadow-xl shadow-slate-900/10 ring-1 backdrop-blur-md',
+            hover ? 'ring-slate-900/10' : 'ring-sky-300/70',
+          )}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <div className="truncate text-[13px] font-semibold text-slate-800">{d.title}</div>
+              <div className="truncate text-[11px] text-slate-500">{d.sub}</div>
+            </div>
+            {!hover && (
+              <Button size="icon" variant="ghost" className="size-6 shrink-0" onClick={() => select(null)} aria-label="Close">
+                <X className="size-3.5" />
+              </Button>
+            )}
           </div>
-        ))}
-      </div>
+          {bad && (
+            <Badge variant="destructive" className="mt-2">
+              Attention required
+            </Badge>
+          )}
+          <div className="mt-2 divide-y divide-slate-200/70">
+            {d.rows.map(([k, v]) => (
+              <div key={k} className="flex justify-between gap-2 py-1">
+                <span className="text-slate-500">{k}</span>
+                <span className="truncate font-medium tabular-nums">{v}</span>
+              </div>
+            ))}
+          </div>
+          {!hover && affectedCount > 0 && sel.kind !== 'asset' && <div className="mt-1.5 text-[10px] text-sky-700">{affectedCount} participant(s) highlighted on the map</div>}
+          {!hover && actions && <div className="mt-2 flex flex-wrap gap-1.5">{actions(sel)}</div>}
+        </div>
+      )}
     </div>
   )
 }

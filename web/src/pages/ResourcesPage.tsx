@@ -1,6 +1,8 @@
 // Programs — DR programmes and their enrolled participants: capacity, live availability, reliability and service status.
 import { useMemo, useState } from 'react'
+import { Crosshair, MapPin } from 'lucide-react'
 import { FitPager } from '@/components/common'
+import { TerritoryMap } from '@/components/three/TerritoryMap'
 import { Panel } from '@/components/page'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -9,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Textarea } from '@/components/ui/textarea'
 import { ASSET_TYPE_META } from '@/data/topology'
 import { api } from '@/lib/api'
+import { frameAssets } from '@/lib/spatial'
 import { capacity, PROGRAMS, type Capacity, type Participant, useParticipants } from '@/lib/dr'
 import { fmtMW } from '@/lib/geo'
 import { cn } from '@/lib/utils'
@@ -21,6 +24,10 @@ export function ResourcesPage() {
   const { data, reload } = useParticipants(3000)
   const can = useAuth((s) => s.can)
   const select = useUI((s) => s.select)
+  const setCamera = useUI((s) => s.setCamera)
+  const focus = useUI((s) => s.focus)
+  const selection = useUI((s) => s.selection)
+  const selected = selection?.kind === 'asset' ? selection.id : null
   const [type, setType] = useState('ALL')
   const [edit, setEdit] = useState<Resource | null>(null)
   const [reason, setReason] = useState('')
@@ -39,7 +46,10 @@ export function ResourcesPage() {
       <div className="grid shrink-0 gap-2" style={{ gridTemplateColumns: `repeat(${progs.length + 1}, minmax(0, 1fr))` }}>
         <ProgramCard
           active={type === 'ALL'}
-          onClick={() => setType('ALL')}
+          onClick={() => {
+            setType('ALL')
+            setCamera('STATE')
+          }}
           color="#0ea5e9"
           name="All programmes"
           desc={`${tot.participants} participants enrolled`}
@@ -50,7 +60,10 @@ export function ResourcesPage() {
           <ProgramCard
             key={p.type}
             active={type === p.type}
-            onClick={() => setType(p.type)}
+            onClick={() => {
+              setType(p.type)
+              focus(null, frameAssets(all.filter((r) => r.type === p.type && r.type !== 'generation').map((r) => r.id)))
+            }}
             color={ASSET_TYPE_META[p.type]?.color}
             name={p.name}
             desc={p.terms}
@@ -60,88 +73,110 @@ export function ResourcesPage() {
           />
         ))}
       </div>
-      <Panel className="flex-1" bodyClass="p-1.5">
-        <FitPager
-          items={rows}
-          rowHeight={43}
-          reserve={64}
-          render={(slice) => (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Participant</TableHead>
-                  <TableHead>Programme</TableHead>
-                  <TableHead>DISCOM / bus</TableHead>
-                  <TableHead className="text-right">Contract</TableHead>
-                  <TableHead className="text-right">Response</TableHead>
-                  <TableHead className="text-right">Bid ₹/kWh</TableHead>
-                  <TableHead>Reliability</TableHead>
-                  <TableHead className="text-right">Setpoint → live</TableHead>
-                  <TableHead>Telemetry</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {slice.map((r) => {
-                  const hb = r.live.heartbeat_age_s
-                  return (
-                    <TableRow key={r.id} className={cn('cursor-pointer', r.out_of_service && 'opacity-60')} onClick={() => select({ kind: 'asset', id: r.id })}>
-                      <TableCell className="max-w-[240px]">
-                        <div className="truncate text-xs font-medium">{r.name}</div>
-                        <div className="truncate text-[10px] text-slate-500">
-                          {r.id} · {r.protocol}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-[11px]" style={{ color: ASSET_TYPE_META[r.type]?.color }}>
-                        {PROGRAMS.find((p) => p.type === r.type)?.name ?? r.type}
-                      </TableCell>
-                      <TableCell className="text-[11px] text-slate-500">
-                        {r.discom} · {r.bus}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-[11px]">{r.contractMW} MW</TableCell>
-                      <TableCell className="text-right font-mono text-[11px]">{r.responseMin} min</TableCell>
-                      <TableCell className="text-right font-mono text-[11px]">{r.bidRs.toLocaleString('en-IN')}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1.5">
-                          <div className="h-1.5 w-12 overflow-hidden rounded-full bg-slate-100">
-                            <div
-                              className={cn('h-full rounded-full', r.reliability >= 0.9 ? 'bg-emerald-400' : r.reliability >= 0.75 ? 'bg-amber-400' : 'bg-rose-400')}
-                              style={{ width: `${r.reliability * 100}%` }}
-                            />
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] gap-3">
+        <Panel bodyClass="p-1.5">
+          <FitPager
+            items={rows}
+            rowHeight={43}
+            reserve={64}
+            render={(slice) => (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Participant</TableHead>
+                    <TableHead>Programme</TableHead>
+                    <TableHead className="text-right">Contract</TableHead>
+                    <TableHead className="text-right">Bid ₹/kWh</TableHead>
+                    <TableHead>Reliability</TableHead>
+                    <TableHead className="text-right">Setpoint → live</TableHead>
+                    <TableHead>Telemetry</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {slice.map((r) => {
+                    const hb = r.live.heartbeat_age_s
+                    return (
+                      <TableRow
+                        key={r.id}
+                        className={cn('cursor-pointer', r.out_of_service && 'opacity-60', selected === r.id && 'bg-sky-50/80')}
+                        onClick={() => select({ kind: 'asset', id: r.id })}
+                      >
+                        <TableCell className="max-w-[230px]">
+                          <div className="flex items-center gap-1 truncate text-xs font-medium">
+                            {selected === r.id && <MapPin className="size-3 shrink-0 text-sky-600" />}
+                            {r.name}
                           </div>
-                          <span className="font-mono text-[10px]">{(r.reliability * 100).toFixed(0)}%</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-[11px]">
-                        {r.live.setpoint > 0.5 ? `${r.live.setpoint.toFixed(0)} → ${r.live.mw.toFixed(0)}` : '—'}
-                        {r.live.soc != null && <div className="text-[10px] text-slate-500">SoC {(r.live.soc * 100).toFixed(0)}%</div>}
-                      </TableCell>
-                      <TableCell>
-                        {hb == null ? (
-                          <span className="text-[10px] text-slate-400">n/a</span>
-                        ) : hb > 60 ? (
-                          <Badge variant="destructive">lost {hb.toFixed(0)}s</Badge>
-                        ) : (
-                          <Badge variant="success">OK</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell onClick={(e) => e.stopPropagation()}>
-                        {can('resources') ? (
-                          <Button size="sm" variant={r.out_of_service ? 'outline' : 'ghost'} className="h-6 px-2 text-[11px]" onClick={() => setEdit(r)}>
-                            {r.out_of_service ? 'Return to service' : 'Take out'}
-                          </Button>
-                        ) : (
-                          <Badge variant={r.out_of_service ? 'destructive' : 'secondary'}>{r.out_of_service ? 'out of service' : 'available'}</Badge>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-          )}
-        />
-      </Panel>
+                          <div className="truncate text-[10px] text-slate-500">
+                            {r.discom} · {r.bus} · {r.protocol} · {r.responseMin} min
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-[11px]" style={{ color: ASSET_TYPE_META[r.type]?.color }}>
+                          {PROGRAMS.find((p) => p.type === r.type)?.name ?? r.type}
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-[11px]">{r.contractMW} MW</TableCell>
+                        <TableCell className="text-right font-mono text-[11px]">{r.bidRs.toLocaleString('en-IN')}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5">
+                            <div className="h-1.5 w-12 overflow-hidden rounded-full bg-slate-100">
+                              <div
+                                className={cn('h-full rounded-full', r.reliability >= 0.9 ? 'bg-emerald-400' : r.reliability >= 0.75 ? 'bg-amber-400' : 'bg-rose-400')}
+                                style={{ width: `${r.reliability * 100}%` }}
+                              />
+                            </div>
+                            <span className="font-mono text-[10px]">{(r.reliability * 100).toFixed(0)}%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-[11px]">
+                          {r.live.setpoint > 0.5 ? `${r.live.setpoint.toFixed(0)} → ${r.live.mw.toFixed(0)}` : '—'}
+                          {r.live.soc != null && <div className="text-[10px] text-slate-500">SoC {(r.live.soc * 100).toFixed(0)}%</div>}
+                        </TableCell>
+                        <TableCell>
+                          {hb == null ? (
+                            <span className="text-[10px] text-slate-400">n/a</span>
+                          ) : hb > 60 ? (
+                            <Badge variant="destructive">lost {hb.toFixed(0)}s</Badge>
+                          ) : (
+                            <Badge variant="success">OK</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          {can('resources') ? (
+                            <Button size="sm" variant={r.out_of_service ? 'outline' : 'ghost'} className="h-6 px-2 text-[11px]" onClick={() => setEdit(r)}>
+                              {r.out_of_service ? 'Return to service' : 'Take out'}
+                            </Button>
+                          ) : (
+                            <Badge variant={r.out_of_service ? 'destructive' : 'secondary'}>{r.out_of_service ? 'out of service' : 'available'}</Badge>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          />
+        </Panel>
+        <Panel
+          title={type === 'ALL' ? 'Where participants are' : `${PROGRAMS.find((p) => p.type === type)?.name} — ${rows.length} participants`}
+          aside={<span className="text-[11px] text-slate-500">click a row to fly to it</span>}
+          bodyClass="p-0"
+        >
+          <TerritoryMap
+            compact
+            className="rounded-t-none border-0"
+            overlay={{ lit: type === 'ALL' ? [] : rows.map((r) => r.id) }}
+            chrome={{
+              hideLegend: true,
+              cardActions: () => (
+                <Button size="sm" variant="ghost" className="h-7" onClick={() => setCamera('STATE')}>
+                  <Crosshair className="size-3.5" /> Reset view
+                </Button>
+              ),
+            }}
+          />
+        </Panel>
+      </div>
       <Dialog open={!!edit} onOpenChange={(o) => !o && setEdit(null)}>
         <DialogContent>
           <DialogHeader>

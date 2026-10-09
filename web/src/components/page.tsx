@@ -32,7 +32,13 @@ export function Panel({
   style?: CSSProperties
 }) {
   return (
-    <section style={style} className={cn('flex min-h-0 flex-col rounded-xl border bg-white shadow-xs', className)}>
+    <section
+      style={style}
+      className={cn(
+        'flex min-h-0 flex-col rounded-2xl border border-white/70 bg-white/80 shadow-lg shadow-slate-900/[0.05] ring-1 ring-slate-900/[0.04] backdrop-blur-md',
+        className,
+      )}
+    >
       {(title || aside) && (
         <div className="flex shrink-0 items-center justify-between gap-2 border-b px-3 py-2">
           <h2 className="text-[13px] font-semibold text-slate-700">{title}</h2>
@@ -47,7 +53,7 @@ export function Panel({
 /** One metric tile. Every page's KPI strip is built from these so the layout reads the same everywhere. */
 export function Stat({ label, value, tone, sub }: { label: string; value: string; tone?: 'good' | 'warn' | 'bad'; sub?: ReactNode }) {
   return (
-    <div className="min-w-0 rounded-lg border bg-white px-2.5 py-1.5 shadow-xs">
+    <div className="min-w-0 rounded-xl border border-white/70 bg-white/80 px-2.5 py-1.5 shadow-md shadow-slate-900/[0.04] ring-1 ring-slate-900/[0.04] backdrop-blur-md">
       <div className="truncate text-[10px] text-slate-500">{label}</div>
       <div
         className={cn(
@@ -72,7 +78,9 @@ export function KpiCard({
   fill,
   onClick,
   children,
+  className,
 }: {
+  className?: string
   icon: ReactNode
   label: string
   value: ReactNode
@@ -82,14 +90,18 @@ export function KpiCard({
   onClick?: () => void
   children?: ReactNode
 }) {
-  const ring = tone === 'bad' ? 'border-rose-200 bg-rose-50/50' : tone === 'warn' ? 'border-amber-200 bg-amber-50/50' : 'bg-white'
+  const ring = tone === 'bad' ? 'border-rose-200 bg-rose-50/70' : tone === 'warn' ? 'border-amber-200 bg-amber-50/70' : 'border-white/70 bg-white/80'
   const text = tone === 'bad' ? 'text-rose-600' : tone === 'warn' ? 'text-amber-700' : tone === 'good' ? 'text-emerald-700' : tone === 'info' ? 'text-sky-700' : 'text-slate-800'
   const bar = tone === 'bad' ? 'bg-rose-400' : tone === 'warn' ? 'bg-amber-400' : tone === 'good' ? 'bg-emerald-400' : 'bg-sky-400'
   return (
     <button
       onClick={onClick}
       disabled={!onClick}
-      className={cn('flex min-w-0 flex-col gap-1 rounded-xl border px-3 py-2 text-left shadow-xs transition enabled:hover:shadow-sm', ring)}
+      className={cn(
+        'flex min-w-0 flex-col gap-1 rounded-xl border px-3 py-2 text-left shadow-md shadow-slate-900/[0.04] ring-1 ring-slate-900/[0.04] backdrop-blur-md transition enabled:hover:-translate-y-px enabled:hover:shadow-lg',
+        ring,
+        className,
+      )}
     >
       <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
         <span className="text-slate-400 [&_svg]:size-3.5">{icon}</span>

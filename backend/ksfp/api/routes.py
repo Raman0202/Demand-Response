@@ -465,6 +465,7 @@ async def report_summary(request: Request, p: Principal = Depends(need("view")))
                 "opened_at": x["opened_at"],
                 "closed_at": x["closed_at"],
                 "headline": x.get("headline"),
+                "closed_reason": x.get("closed_reason"),
                 "settlement": {k: v for k, v in (x["settlement"] or {}).items() if k != "rows"},
             }
             for x in sorted(rows, key=lambda x: -(x["closed_at"] or 0))[:100]

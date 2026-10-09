@@ -1,6 +1,6 @@
 // Reports & Audit — settled outcomes (M&V) and the tamper-evident audit trail.
 import { useState } from 'react'
-import { ShieldCheck, ShieldX } from 'lucide-react'
+import { MapPin, ShieldCheck, ShieldX } from 'lucide-react'
 import { FitPager, SectionTabs } from '@/components/common'
 import { Empty, Panel, Stat, StatStrip } from '@/components/page'
 import { Badge } from '@/components/ui/badge'
@@ -23,7 +23,7 @@ interface Summary {
   delivered_mwh: number
   expected_mwh: number
   forecast_accuracy: { mape_1block_pct: number | null; samples: number } | null
-  items: { id: string; state: string; severity: string; opened_at: number; closed_at: number | null; headline: string | null; settlement: Record<string, number> }[]
+  items: { id: string; state: string; severity: string; opened_at: number; closed_at: number | null; headline: string | null; closed_reason?: string | null; settlement: Record<string, number> }[]
   reliability: Record<string, number>
 }
 interface AuditEntry {
@@ -83,6 +83,7 @@ export function ReportsPage() {
 
 function Outcomes({ s }: { s?: Summary }) {
   const go = useUI((x) => x.go)
+  const showEvent = useUI((x) => x.showEvent)
   if (!s?.items.length) return <Empty>No DR events settled yet — results appear here when an event closes.</Empty>
   return (
     <FitPager
@@ -94,12 +95,13 @@ function Outcomes({ s }: { s?: Summary }) {
           <TableHeader>
             <TableRow>
               <TableHead>Decision</TableHead>
-              <TableHead>Headline</TableHead>
+              <TableHead>Outcome</TableHead>
               <TableHead>Closed</TableHead>
               <TableHead className="text-right">Delivered</TableHead>
               <TableHead className="text-right">Avoided DSM</TableHead>
               <TableHead className="text-right">Payments</TableHead>
               <TableHead className="text-right">Net benefit</TableHead>
+              <TableHead />
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -108,13 +110,28 @@ function Outcomes({ s }: { s?: Summary }) {
                 <TableCell className="font-mono text-[11px]">
                   {d.id} <Badge variant="outline">{d.state}</Badge>
                 </TableCell>
-                <TableCell className="max-w-[320px] truncate text-xs">{d.headline}</TableCell>
+                <TableCell className="max-w-[320px] truncate text-xs" title={d.headline ?? ''}>
+                  {d.closed_reason || d.headline}
+                </TableCell>
                 <TableCell className="font-mono text-[11px]">{d.closed_at ? clockS(d.closed_at) : '—'}</TableCell>
                 <TableCell className="text-right font-mono text-[11px]">{(d.settlement.delivered_mwh ?? 0).toFixed(1)} MWh</TableCell>
                 <TableCell className="text-right font-mono text-[11px]">{fmtRs(d.settlement.avoided_dsm_rs ?? 0)}</TableCell>
                 <TableCell className="text-right font-mono text-[11px]">{fmtRs(d.settlement.payments_rs ?? 0)}</TableCell>
                 <TableCell className={`text-right font-mono text-[11px] font-semibold ${(d.settlement.net_benefit_rs ?? 0) >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
                   {fmtRs(d.settlement.net_benefit_rs ?? 0)}
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 px-2 text-[11px]"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      showEvent(d.id, [], d.opened_at)
+                    }}
+                  >
+                    <MapPin className="size-3" /> Replay
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}

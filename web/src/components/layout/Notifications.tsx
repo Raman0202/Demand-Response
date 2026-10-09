@@ -91,8 +91,10 @@ export function NotificationBell() {
 
 export function Toaster() {
   const toasts = useNotify((s) => s.toasts)
+  // on the map workspace the bottom-right belongs to the Intent panel (with its own Approve), so toasts drop in at the top centre
+  const overview = useUI((s) => s.page === 'command')
   return (
-    <div className="pointer-events-none fixed right-4 bottom-4 z-50 flex w-[380px] flex-col gap-2">
+    <div className={cn('pointer-events-none fixed z-50 flex w-[380px] flex-col gap-2', overview ? 'top-[172px] left-1/2 -translate-x-1/2' : 'right-4 bottom-4')}>
       {toasts.map((t) => (
         <Toast key={t.id} t={t} />
       ))}
