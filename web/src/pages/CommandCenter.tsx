@@ -1,7 +1,7 @@
 // Overview — the spatial workspace. The live territory map is the canvas; DR headline numbers and the four operator
 // questions (AT RISK · NEXT · INTENT, with NOW being the map itself) float over it as glass panels. Selecting anything
 // flies the camera there and lights up what it touches; the active DR event plays out on the map with a scrubbable timeline.
-import { useState } from 'react'
+import { useCallback, useState, type CSSProperties } from 'react'
 import { Area, AreaChart, CartesianGrid, Line, ReferenceLine, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts'
 import {
   Activity,
@@ -73,6 +73,15 @@ export function CommandCenter() {
   const setCamera = useUI((s) => s.setCamera)
   const go = useUI((s) => s.go)
   const [kpisOpen, setKpisOpen] = useState(true)
+  // the map toolbar sits just under the KPI strip, whatever height the strip ends up (width, open/closed)
+  const [stripH, setStripH] = useState(0)
+  const stripRef = useCallback((el: HTMLDivElement | null) => {
+    if (!el) return
+    const ro = new ResizeObserver(() => setStripH(el.offsetHeight))
+    ro.observe(el)
+    setStripH(el.offsetHeight)
+    return () => ro.disconnect()
+  }, [])
   const [timelineFor, setTimelineFor] = useState<string | null | undefined>(undefined) // undefined = follow active event
 
   // the event in context: one the operator picked, otherwise the live one
@@ -119,13 +128,13 @@ export function CommandCenter() {
   )
 
   return (
-    <div className="relative h-full overflow-hidden">
+    <div className="relative h-full overflow-hidden" style={{ '--kpi-h': `${stripH}px` } as CSSProperties}>
       <div className="absolute inset-0 isolate">
         <TerritoryMap
           overlay={eventId ? pb.overlay : undefined}
           chrome={{
             bare: true,
-            toolbarClass: cn('left-3 transition-[top]', kpisOpen ? 'top-[112px]' : 'top-[60px]'),
+            toolbarClass: 'left-3 top-[calc(var(--kpi-h)+20px)] transition-[top]', // 12 px panel inset + 8 px gap
             legendClass: cn('left-3', showTimeline ? 'bottom-[120px]' : 'bottom-3'),
             cardActions,
             // while replaying, the event card shows the moment under the playhead, not the live state
@@ -145,7 +154,9 @@ export function CommandCenter() {
 
       {/* floating chrome: pointer events only on the panels themselves */}
       <div className="pointer-events-none absolute inset-0 z-10 flex flex-col gap-3 p-3">
-        <DrStrip open={kpisOpen} onToggle={() => setKpisOpen(!kpisOpen)} />
+        <div ref={stripRef} className="shrink-0">
+          <DrStrip open={kpisOpen} onToggle={() => setKpisOpen(!kpisOpen)} />
+        </div>
         <div className="flex min-h-0 flex-1 gap-3">
           <div className="flex min-w-0 flex-1 flex-col justify-end">
             {showTimeline && (
@@ -208,7 +219,7 @@ function DrStrip({ open, onToggle }: { open: boolean; onToggle: () => void }) {
     )
   return (
     <div className="flex shrink-0 gap-2">
-      <div className="pointer-events-auto grid min-w-0 flex-1 grid-cols-7 gap-2">
+      <div className="pointer-events-auto grid min-w-0 flex-1 grid-cols-[minmax(0,3fr)_repeat(6,minmax(0,1fr))] gap-2 2xl:grid-cols-[minmax(0,2.4fr)_repeat(6,minmax(0,1fr))]">
         <GridNeedCard className={g} delivering={c.delivering} onOpen={() => go('analysis')} />
         <KpiCard
           className={g}
@@ -286,16 +297,19 @@ function GridNeedCard({ className, delivering, onOpen }: { className: string; de
   const fBad = f.frequency < 49.8 || f.frequency > 50.1
   const fWarn = f.frequency < 49.9 || f.frequency > 50.05
   return (
-    <button onClick={onOpen} className={cn('col-span-2 flex min-w-0 gap-3 rounded-xl border px-3 py-2 text-left shadow-md transition hover:shadow-lg', className, ring)}>
+    <button onClick={onOpen} className={cn('flex min-w-0 gap-3 rounded-xl border px-3 py-2 text-left shadow-md transition hover:shadow-lg', className, ring)}>
       <div className="flex min-w-0 flex-1 flex-col justify-between gap-1">
-        <div className="flex items-center gap-1.5 text-[11px] font-medium text-slate-500">
+        <div className="flex items-center gap-1.5 text-[11px] font-medium whitespace-nowrap text-slate-500">
           <Target className="size-3.5 text-slate-400" /> Grid need
           <span className={cn('ml-1 rounded px-1.5 py-px text-[9px] font-bold tracking-wide', sevCls)}>{sev}</span>
           {ev && <span className="truncate text-[10px] text-slate-400">· event {ev.id}</span>}
         </div>
         <div className="flex items-baseline gap-2">
           <span
-            className={cn('font-mono text-xl leading-none font-semibold tabular-nums', balanced ? 'text-emerald-700' : sev === 'EMERGENCY' ? 'text-rose-600' : 'text-amber-700')}
+            className={cn(
+              'font-mono text-xl leading-none font-semibold whitespace-nowrap tabular-nums',
+              balanced ? 'text-emerald-700' : sev === 'EMERGENCY' ? 'text-rose-600' : 'text-amber-700',
+            )}
           >
             {fmtMW(total)}
           </span>
@@ -323,7 +337,7 @@ function GridNeedCard({ className, delivering, onOpen }: { className: string; de
           </div>
         )}
       </div>
-      <div className="flex w-[156px] shrink-0 flex-col justify-center gap-1 border-l border-slate-900/[0.06] pl-3 text-[10.5px] whitespace-nowrap">
+      <div className="flex w-[136px] shrink-0 flex-col 2xl:w-[156px] justify-center gap-1 border-l border-slate-900/[0.06] pl-3 text-[10.5px] whitespace-nowrap">
         <Reading label="Frequency" value={`${f.frequency.toFixed(3)} Hz`} tone={fBad ? 'text-rose-600' : fWarn ? 'text-amber-700' : 'text-emerald-700'} />
         <Reading label="ACE" value={`${signed(f.ace)} MW`} tone={Math.abs(f.ace) >= 300 ? 'text-rose-600' : Math.abs(f.ace) >= 100 ? 'text-amber-700' : 'text-slate-800'} />
         <Reading label="DSM/block" value={fmtRs(Math.abs(f.dsm_per_block_rs))} tone={f.dsm_per_block_rs > 0 ? 'text-amber-700' : 'text-slate-800'} />

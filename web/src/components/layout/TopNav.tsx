@@ -1,4 +1,4 @@
-// Primary navigation (operator destinations), live event + grid vitals, and the system-status cluster.
+// Primary navigation (operator destinations), live event chip, and the system-status cluster.
 import { useState } from 'react'
 import {
   Activity,
@@ -28,7 +28,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { api } from '@/lib/api'
 import { NotificationBell } from './Notifications'
-import { signed } from '@/lib/ui'
+import { AdrmsBrand } from '@/components/brand/AdrmsMark'
 import { fmtMW } from '@/lib/geo'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/store/useAuth'
@@ -92,8 +92,6 @@ export function TopNav() {
   }
 
   const ev = f?.active_decision && !f.active_decision.closed_at ? f.active_decision : null
-  const dev = f ? f.drawal - f.schedule : 0
-  const fTone = !f ? '' : f.frequency < 49.8 || f.frequency > 50.1 ? 'text-rose-600' : f.frequency < 49.9 || f.frequency > 50.05 ? 'text-amber-700' : 'text-emerald-700'
   const sevDot = { NORMAL: 'bg-emerald-500', ALERT: 'bg-amber-500', EMERGENCY: 'animate-pulse bg-rose-500' } as const
   const tab = 'relative flex h-full items-center gap-1.5 px-2 text-[13px] 2xl:px-2.5 font-medium whitespace-nowrap text-slate-500 transition hover:text-slate-900'
   const on = 'text-sky-700 after:absolute after:inset-x-2 after:bottom-0 after:h-[3px] after:rounded-t-full after:bg-sky-600'
@@ -102,21 +100,15 @@ export function TopNav() {
     <header className="relative flex h-13 shrink-0 items-stretch gap-3 border-b border-slate-200/80 bg-white/90 px-3 text-slate-800 shadow-[0_6px_20px_-14px_rgba(23,47,78,0.35)] backdrop-blur">
       {/* hairline highlight along the bottom edge */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-sky-400/50 to-transparent" />
-      <button onClick={() => go('command')} className="flex items-center gap-2.5 pr-3">
-        <div className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-sky-400 to-sky-600 shadow-sm ring-1 ring-sky-700/20">
-          <Zap className="size-4 fill-white text-white" />
-        </div>
-        <div className="hidden text-left leading-tight whitespace-nowrap min-[1800px]:block">
-          <div className="text-[13.5px] font-semibold tracking-tight">Demand Response</div>
-          <div className="text-[10px] text-muted-foreground">Autonomous DR operations</div>
-        </div>
+      <button onClick={() => go('command')} className="flex items-center pr-3" aria-label="ADRMS — home">
+        <AdrmsBrand />
       </button>
       <div className="my-3 w-px bg-slate-200" />
 
       <nav className="flex items-stretch">
         {PRIMARY.map(({ id, label, icon: Icon }) => (
           <button key={id} onClick={() => go(id)} className={cn(tab, page === id && on)}>
-            <Icon className="size-4 max-[1365px]:hidden" />
+            <Icon className="size-4 max-[1799px]:hidden" />
             {label}
             {counts[id] && <span className={cn('ml-0.5 rounded-full px-1.5 text-[10px] font-bold tabular-nums', counts[id]!.tone)}>{counts[id]!.n}</span>}
           </button>
@@ -141,7 +133,7 @@ export function TopNav() {
         </DropdownMenu>
       </nav>
 
-      {/* live event + grid vitals + system status — qualifies everything on screen */}
+      {/* live event + system status — qualifies everything on screen */}
       <div className="ml-auto flex items-center gap-2">
         {f && (
           <>
@@ -154,24 +146,12 @@ export function TopNav() {
                   <span className="absolute inline-flex size-full animate-ping rounded-full bg-amber-400 opacity-70" />
                   <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
                 </span>
-                {ev.id} · {ev.direction === 'UP' ? '↓ load' : '↑ load'} {fmtMW(ev.requirement_mw)}
+                <span className="hidden min-[2100px]:inline">{ev.id} · </span>
+                {ev.direction === 'UP' ? '↓' : '↑'}
+                <span className="hidden 2xl:inline">load</span> {fmtMW(ev.requirement_mw)}
                 {ev.awaiting_mw > 0 && <span className="rounded bg-amber-500 px-1 text-[9px] text-white">APPROVE</span>}
               </button>
             )}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="hidden items-center divide-x divide-slate-200 rounded-lg bg-slate-50 font-mono text-[12px] whitespace-nowrap tabular-nums ring-1 ring-slate-200 2xl:flex">
-                  <span className={cn('px-2.5 py-1 font-semibold', fTone)}>{f.frequency.toFixed(3)} Hz</span>
-                  <span className="px-2.5 py-1 text-slate-700">
-                    <span className="mr-1 font-sans text-[10px] text-slate-400">Δsch</span>
-                    {signed(dev)} MW
-                  </span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                Frequency and drawal deviation from schedule (+ over-drawing). Drawal {fmtMW(f.drawal)} vs schedule {fmtMW(f.schedule)}; ACE {signed(f.ace)} MW.
-              </TooltipContent>
-            </Tooltip>
 
             <div className="flex items-center rounded-full bg-slate-50 p-0.5 ring-1 ring-slate-200">
               <Tooltip>
@@ -196,7 +176,16 @@ export function TopNav() {
                     )}
                   >
                     <Bot className="size-3.5" />
-                    {f.autonomy.suspended ? 'Autonomy suspended' : `L${eff} ${LEVELS[eff]}`}
+                    {f.autonomy.suspended ? (
+                      <>
+                        <span className="hidden 2xl:inline">Autonomy</span> suspended
+                      </>
+                    ) : (
+                      <>
+                        L{eff}
+                        <span className="hidden 2xl:inline">{LEVELS[eff]}</span>
+                      </>
+                    )}
                     {degraded && !f.autonomy.suspended && <span className="text-[9px] font-bold opacity-80">↓ from L{f.autonomy.level}</span>}
                     <ChevronDown className="size-3" />
                   </button>
@@ -272,6 +261,7 @@ export function TopNav() {
             <span
               className={cn(
                 'grid size-7 place-items-center rounded-full',
+                conn === 'live' && 'max-2xl:hidden', // only worth the space on narrow screens when the stream is not live
                 conn === 'live' ? 'text-emerald-600' : conn === 'offline' ? 'text-rose-600' : 'animate-pulse text-amber-600',
               )}
             >
