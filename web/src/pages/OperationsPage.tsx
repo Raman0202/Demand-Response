@@ -1,5 +1,6 @@
 // Operations — the live grid: 3D map, network constraints, resources in action, 220 kV channels, generation.
 import { useMemo, useState } from 'react'
+import { Activity, ArrowDownUp, Cable, Factory, Sun, Unplug, Zap } from 'lucide-react'
 import { Bar, FitPager } from '@/components/common'
 import { Panel, Stat, StatStrip } from '@/components/page'
 import { TerritoryMap } from '@/components/three/TerritoryMap'
@@ -15,29 +16,73 @@ import { useUI } from '@/store/useUI'
 export function OperationsPage() {
   const f = useLive((s) => s.frame)!
   const kptcl = f.source.kptcl
+  const trend = useLive((s) => s.trend)
+  const series = (k: 'demand' | 're' | 'deviation') => trend.slice(-120).map((p) => p[k])
+  // change over one 15-min block (trend ts is the grid clock, so this holds under simulation speed-up too)
+  const back = trend.length && trend[0].ts <= f.ts - 900 ? trend.find((p) => p.ts >= f.ts - 900) : undefined
+  const dDemand = back ? f.demand - back.demand : null
+  const dev = f.drawal - f.schedule
+  const devTone = Math.abs(dev) > 150 ? 'warn' : Math.abs(dev) > 50 ? 'info' : 'good'
+  const setpointMw = Object.values(f.live_setpoints).reduce((a, b) => a + b, 0)
   return (
     <div className="flex h-full flex-col gap-3">
       <StatStrip>
-        <Stat label="System demand" value={fmtMW(f.demand)} sub={kptcl ? `SLDC feed ${kptcl.ok}/${kptcl.total} pages · ${kptcl.live} live` : 'source: simulated field'} />
-        <Stat label="In-state generation" value={fmtMW(f.state_gen)} sub={`central share ${fmtMW(f.central_gen)}`} />
-        <Stat label="Renewables" value={fmtMW(f.re)} sub={`${((f.re / Math.max(1, f.demand)) * 100).toFixed(0)}% of demand`} />
-        <Stat label="ISTS drawal / schedule" value={`${fmtMW(f.drawal)} / ${fmtMW(f.schedule)}`} tone={Math.abs(f.drawal - f.schedule) > 150 ? 'warn' : undefined} />
         <Stat
+          icon={<Activity />}
+          label="System demand"
+          value={fmtMW(f.demand)}
+          delta={dDemand != null ? { text: `${dDemand >= 0 ? '+' : '−'}${fmtMW(Math.abs(dDemand))}/blk`, tone: 'info' } : undefined}
+          spark={series('demand')}
+          tone="info"
+          sub={kptcl ? `SLDC feed ${kptcl.ok}/${kptcl.total} pages · ${kptcl.live} live` : 'source: simulated field'}
+        />
+        <Stat
+          icon={<Factory />}
+          label="In-state generation"
+          value={fmtMW(f.state_gen)}
+          meter={f.state_gen / Math.max(1, f.demand)}
+          sub={`${((f.state_gen / Math.max(1, f.demand)) * 100).toFixed(0)}% of demand · central ${fmtMW(f.central_gen)}`}
+        />
+        <Stat
+          icon={<Sun />}
+          label="Renewables"
+          value={fmtMW(f.re)}
+          tone="good"
+          spark={series('re')}
+          meter={f.re / Math.max(1, f.demand)}
+          sub={`${((f.re / Math.max(1, f.demand)) * 100).toFixed(0)}% of demand`}
+        />
+        <Stat
+          icon={<ArrowDownUp />}
+          label="Drawal vs schedule"
+          value={fmtMW(f.drawal)}
+          delta={{ text: `${dev >= 0 ? '+' : '−'}${fmtMW(Math.abs(dev))}`, tone: devTone }}
+          tone={devTone}
+          spark={series('deviation')}
+          sub={`schedule ${fmtMW(f.schedule)} · ${dev > 0 ? 'over' : 'under'}-drawing`}
+        />
+        <Stat
+          icon={<Cable />}
           label="Most loaded corridor"
           value={`${(f.max_line.loading * 100).toFixed(0)}%`}
+          meter={f.max_line.loading}
           sub={lineLabel(f.max_line.line)}
           tone={f.max_line.loading > 1 ? 'bad' : f.max_line.loading > 0.9 ? 'warn' : 'good'}
         />
         <Stat
+          icon={<Unplug />}
           label="Lines out of service"
-          value={String(f.outaged.length)}
+          value={`${f.outaged.length} / ${LINES.length}`}
           tone={f.outaged.length ? 'bad' : 'good'}
-          sub={f.islanded.length ? `${f.islanded.length} bus(es) islanded` : 'network intact'}
+          meter={(LINES.length - f.outaged.length) / Math.max(1, LINES.length)}
+          sub={f.islanded.length ? `${f.islanded.length} bus(es) islanded` : `network intact · ${LINES.length - f.outaged.length} in service`}
         />
         <Stat
+          icon={<Zap />}
           label="Resources dispatched"
           value={String(Object.entries(f.live_setpoints).filter(([id, v]) => v > 0.5 && id !== 'RTM').length)}
-          sub={`${fmtMW(Object.values(f.live_setpoints).reduce((a, b) => a + b, 0))} setpoint`}
+          tone={setpointMw > 0.5 ? 'info' : undefined}
+          sub={`${fmtMW(setpointMw)} setpoint`}
         />
       </StatStrip>
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] gap-3">

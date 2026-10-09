@@ -50,21 +50,109 @@ export function Panel({
   )
 }
 
-/** One metric tile. Every page's KPI strip is built from these so the layout reads the same everywhere. */
-export function Stat({ label, value, tone, sub }: { label: string; value: string; tone?: 'good' | 'warn' | 'bad'; sub?: ReactNode }) {
+type Tone = 'good' | 'warn' | 'bad' | 'info'
+const TONE_TEXT: Record<Tone, string> = { good: 'text-emerald-700', warn: 'text-amber-700', bad: 'text-rose-600', info: 'text-sky-700' }
+const TONE_TILE: Record<Tone | 'none', string> = {
+  good: 'bg-emerald-50 text-emerald-600 ring-emerald-100',
+  warn: 'bg-amber-50 text-amber-600 ring-amber-100',
+  bad: 'bg-rose-50 text-rose-600 ring-rose-100',
+  info: 'bg-sky-50 text-sky-600 ring-sky-100',
+  none: 'bg-slate-50 text-slate-500 ring-slate-100',
+}
+const TONE_BAR: Record<Tone | 'none', string> = { good: 'bg-emerald-500', warn: 'bg-amber-500', bad: 'bg-rose-500', info: 'bg-sky-500', none: 'bg-sky-500' }
+const TONE_STROKE: Record<Tone | 'none', string> = { good: '#2a8761', warn: '#c07e18', bad: '#b83b3a', info: '#2a5894', none: '#5c8cc6' }
+
+/** Tiny trend line (no axes) — last N samples of the metric. */
+export function Sparkline({ data, tone = 'none', className }: { data: number[]; tone?: Tone | 'none'; className?: string }) {
+  if (data.length < 2) return null
+  const lo = Math.min(...data)
+  const hi = Math.max(...data)
+  const span = hi - lo || 1
+  const pts = data.map((v, i) => [(i / (data.length - 1)) * 100, 22 - ((v - lo) / span) * 20])
+  const line = pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ')
+  const c = TONE_STROKE[tone]
   return (
-    <div className="min-w-0 rounded-xl border border-white/70 bg-white/80 px-2.5 py-1.5 shadow-md shadow-slate-900/[0.04] ring-1 ring-slate-900/[0.04] backdrop-blur-md">
-      <div className="truncate text-[10px] text-slate-500">{label}</div>
-      <div
-        className={cn(
-          'truncate font-mono text-[13px] font-semibold',
-          tone === 'good' ? 'text-emerald-700' : tone === 'warn' ? 'text-amber-700' : tone === 'bad' ? 'text-rose-600' : 'text-slate-800',
+    <svg viewBox="0 0 100 24" preserveAspectRatio="none" className={cn('h-6 w-16 shrink-0 overflow-visible', className)}>
+      <polygon points={`0,24 ${line} 100,24`} fill={c} opacity={0.1} />
+      <polyline points={line} fill="none" stroke={c} strokeWidth={1.5} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
+      <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r={2} fill={c} />
+    </svg>
+  )
+}
+
+/**
+ * One KPI tile. Every page's KPI strip is built from these so the layout reads the same everywhere:
+ * icon + label (+ delta chip), value (+ sparkline), then a meter or segmented bar, then the context line.
+ */
+export function Stat({
+  label,
+  value,
+  tone,
+  sub,
+  icon,
+  delta,
+  spark,
+  meter,
+  segments,
+  onClick,
+}: {
+  label: string
+  value: string
+  tone?: Tone
+  sub?: ReactNode
+  icon?: ReactNode
+  delta?: { text: string; tone?: Tone }
+  spark?: number[]
+  /** 0–1 fill, coloured by tone */
+  meter?: number
+  /** stacked bar, e.g. alarm mix by priority */
+  segments?: { v: number; cls: string; label?: string }[]
+  onClick?: () => void
+}) {
+  const k = tone ?? 'none'
+  const segTotal = segments?.reduce((a, x) => a + x.v, 0) ?? 0
+  const Comp = onClick ? 'button' : 'div'
+  return (
+    <Comp
+      onClick={onClick}
+      className={cn(
+        'relative flex min-w-0 flex-col gap-1 overflow-hidden rounded-xl border border-white/70 bg-white/85 py-2 pr-2.5 pl-3 text-left shadow-md shadow-slate-900/[0.04] ring-1 ring-slate-900/[0.04] backdrop-blur-md',
+        onClick && 'transition hover:-translate-y-px hover:shadow-lg',
+      )}
+    >
+      {/* status accent */}
+      <span className={cn('absolute inset-y-2 left-0 w-[3px] rounded-r-full', tone ? TONE_BAR[tone] : 'bg-slate-200')} />
+      <div className="flex min-w-0 items-center gap-1.5">
+        {icon && <span className={cn('grid size-5 shrink-0 place-items-center rounded-md ring-1 [&_svg]:size-3', TONE_TILE[k])}>{icon}</span>}
+        <span className="min-w-0 flex-1 truncate text-[11px] font-medium text-slate-500">{label}</span>
+        {delta && (
+          <span
+            className={cn(
+              'shrink-0 rounded-full bg-slate-50 px-1.5 font-mono text-[10px] font-semibold tabular-nums ring-1 ring-slate-200',
+              delta.tone ? TONE_TEXT[delta.tone] : 'text-slate-600',
+            )}
+          >
+            {delta.text}
+          </span>
         )}
-      >
-        {value}
       </div>
-      {sub && <div className="truncate text-[10px] text-slate-400">{sub}</div>}
-    </div>
+      <div className="flex min-w-0 items-end gap-2">
+        <span className={cn('min-w-0 flex-1 truncate font-mono text-[17px] leading-tight font-semibold tabular-nums', tone ? TONE_TEXT[tone] : 'text-slate-800')}>{value}</span>
+        {spark && <Sparkline data={spark} tone={k} />}
+      </div>
+      {meter != null && (
+        <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100">
+          <div className={cn('h-full rounded-full transition-all', TONE_BAR[k])} style={{ width: `${Math.max(0, Math.min(100, meter * 100))}%` }} />
+        </div>
+      )}
+      {segments && (
+        <div className="flex h-1 w-full gap-px overflow-hidden rounded-full bg-slate-100">
+          {segTotal > 0 &&
+            segments.filter((x) => x.v > 0).map((x, i) => <div key={i} title={x.label} className={cn('h-full', x.cls)} style={{ width: `${(x.v / segTotal) * 100}%` }} />)}
+        </div>
+      )}
+      {sub && <div className="mt-auto truncate text-[10.5px] text-slate-400">{sub}</div>}
+    </Comp>
   )
 }
 

@@ -1,6 +1,6 @@
 // Alarms & events — prioritised, correlated into incidents; acknowledge and shelve with reasons.
 import { useState } from 'react'
-import { Archive, Check, CheckCheck } from 'lucide-react'
+import { Archive, BellDot, BellRing, Check, CheckCheck, Hourglass, Layers, ShieldCheck, Siren } from 'lucide-react'
 import { FitPager } from '@/components/common'
 import { Empty, Panel, Prio, Stat, StatStrip } from '@/components/page'
 import { Badge } from '@/components/ui/badge'
@@ -17,6 +17,9 @@ import { useAuth } from '@/store/useAuth'
 import { clockS, useLive } from '@/store/useLive'
 import { useUI } from '@/store/useUI'
 
+const PRIO_BAR: Record<number, string> = { 1: 'bg-rose-500', 2: 'bg-amber-500', 3: 'bg-sky-500', 4: 'bg-slate-300' }
+const fmtAge = (s: number) => (s < 60 ? `${s.toFixed(0)} s` : s < 3600 ? `${(s / 60).toFixed(0)} min` : `${(s / 3600).toFixed(1)} h`)
+
 interface Incident {
   id: string
   category: string
@@ -31,6 +34,9 @@ interface Incident {
 export function AlarmsPage() {
   const [status, setStatus] = useState('active')
   const { data, reload } = useApi<{ items: Alarm[]; total: number; incidents: Incident[] }>(`/alarms?status=${status}&limit=500`, { intervalMs: 4000 })
+  const { data: act } = useApi<{ items: Alarm[]; total: number; incidents: Incident[] }>('/alarms?status=active&limit=500', { intervalMs: 4000 })
+  const { data: shelf } = useApi<{ items: Alarm[]; total: number }>('/alarms?status=shelved&limit=500', { intervalMs: 8000 })
+  const trend = useLive((s) => s.trend)
   const can = useAuth((s) => s.can)
   const f = useLive((s) => s.frame)
   const go = useUI((s) => s.go)
@@ -38,6 +44,16 @@ export function AlarmsPage() {
   const [reason, setReason] = useState('')
   const items = data?.items ?? []
   const incidents = data?.incidents ?? []
+  // KPI figures always describe the active set, whichever filter tab is shown
+  const active = act?.items ?? [] // same set the frame counts: active, or cleared but not yet acknowledged
+  const now = f?.ts ?? 0
+  const byPrio: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0 }
+  active.forEach((a) => (byPrio[a.priority] = (byPrio[a.priority] ?? 0) + 1))
+  const p1Unacked = active.filter((a) => a.priority === 1 && !a.acked).length
+  const oldestAlarm = active.filter((a) => !a.acked).sort((a, b) => a.raised_at - b.raised_at)[0]
+  const oldest = oldestAlarm ? Math.max(0, now - oldestAlarm.raised_at) : null
+  const shelved = shelf?.items.length ?? 0 // the active list excludes shelved alarms
+  const openInc = (act?.incidents ?? incidents).filter((i) => !i.closed_at)
 
   async function ack(id: string) {
     await api(`/alarms/${id}/ack`, { method: 'POST' })
@@ -46,12 +62,60 @@ export function AlarmsPage() {
   return (
     <div className="flex h-full flex-col gap-3">
       <StatStrip>
-        <Stat label="Active alarms" value={String(f?.counts.alarms ?? 0)} tone={(f?.counts.alarms ?? 0) ? 'warn' : 'good'} />
-        <Stat label="Critical (P1)" value={String(f?.counts.p1 ?? 0)} tone={(f?.counts.p1 ?? 0) ? 'bad' : 'good'} />
-        <Stat label="Unacknowledged" value={String(f?.counts.unacked ?? 0)} tone={(f?.counts.unacked ?? 0) ? 'warn' : 'good'} />
-        <Stat label="Open incidents" value={String(incidents.filter((i) => !i.closed_at).length)} />
-        <Stat label="In this view" value={String(data?.total ?? items.length)} sub={status === 'all' ? 'history' : status} />
-        <Stat label="Data confidence" value={`${((f?.confidence ?? 1) * 100).toFixed(0)}%`} tone={(f?.confidence ?? 1) < 0.85 ? 'warn' : 'good'} />
+        <Stat
+          icon={<BellRing />}
+          label="Active alarms"
+          value={String(f?.counts.alarms ?? 0)}
+          segments={[1, 2, 3, 4].map((k) => ({ v: byPrio[k], cls: PRIO_BAR[k], label: `P${k}: ${byPrio[k]}` }))}
+          sub={`P1 ${byPrio[1]} · P2 ${byPrio[2]} · P3 ${byPrio[3]} · P4 ${byPrio[4]}`}
+          tone={(f?.counts.alarms ?? 0) ? 'warn' : 'good'}
+        />
+        <Stat
+          icon={<Siren />}
+          label="Critical (P1)"
+          value={String(f?.counts.p1 ?? 0)}
+          delta={p1Unacked ? { text: `${p1Unacked} unacked`, tone: 'bad' } : undefined}
+          sub={(f?.counts.p1 ?? 0) ? 'respond immediately' : 'none raised'}
+          tone={(f?.counts.p1 ?? 0) ? 'bad' : 'good'}
+        />
+        <Stat
+          icon={<BellDot />}
+          label="Unacknowledged"
+          value={String(f?.counts.unacked ?? 0)}
+          meter={(f?.counts.alarms ?? 0) ? 1 - (f?.counts.unacked ?? 0) / (f?.counts.alarms ?? 1) : 1}
+          sub={`${(f?.counts.alarms ?? 0) ? Math.round((1 - (f?.counts.unacked ?? 0) / (f?.counts.alarms ?? 1)) * 100) : 100}% acknowledged`}
+          tone={(f?.counts.unacked ?? 0) ? 'warn' : 'good'}
+        />
+        <Stat
+          icon={<Hourglass />}
+          label="Oldest unacknowledged"
+          value={oldest != null ? fmtAge(oldest) : '—'}
+          sub={oldestAlarm ? oldestAlarm.title : 'all acknowledged'}
+          tone={oldest == null ? 'good' : oldest > 1800 ? 'bad' : oldest > 600 ? 'warn' : 'info'}
+        />
+        <Stat
+          icon={<Layers />}
+          label="Open incidents"
+          value={String(openInc.length)}
+          delta={openInc.length ? { text: `${openInc.reduce((a, i) => a + i.alarm_ids.length, 0)} alarms` } : undefined}
+          sub={openInc.length ? `${openInc.filter((i) => i.decision_id).length} linked to a DR event` : 'nothing correlated'}
+          tone={openInc.length ? 'info' : 'good'}
+        />
+        <Stat
+          icon={<Archive />}
+          label="Shelved"
+          value={String(shelved)}
+          sub={shelved ? 'returns automatically when shelf expires' : 'nothing shelved'}
+          tone={shelved ? 'info' : undefined}
+        />
+        <Stat
+          icon={<ShieldCheck />}
+          label="Data confidence"
+          value={`${((f?.confidence ?? 1) * 100).toFixed(0)}%`}
+          spark={trend.slice(-120).map((p) => p.confidence * 100)}
+          sub={(f?.confidence ?? 1) < 0.85 ? 'autonomy degraded to advisory' : 'state estimate healthy'}
+          tone={(f?.confidence ?? 1) < 0.85 ? 'warn' : 'good'}
+        />
       </StatStrip>
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] gap-3">
         <Panel

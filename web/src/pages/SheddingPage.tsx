@@ -2,7 +2,7 @@
 // exhausted; every order needs shift-in-charge approval. Roster board (who is out, who is next, fairness), the 220 kV
 // feeders on the map, and the order lifecycle (propose → approve → rotate → staged restore).
 import { useState } from 'react'
-import { Ban, Check, Crosshair, Loader2, Power, RotateCcw, ShieldCheck, Zap } from 'lucide-react'
+import { Ban, Check, Crosshair, Gauge, Loader2, Power, RotateCcw, Scale, ShieldCheck, Timer, TrendingUp, Waves, Zap } from 'lucide-react'
 import { FitPager } from '@/components/common'
 import { Empty, Panel, Stat, StatStrip } from '@/components/page'
 import { TerritoryMap } from '@/components/three/TerritoryMap'
@@ -86,11 +86,16 @@ export function SheddingPage() {
   const now = f.ts
   const focus = useUI((s) => s.focus)
   const setCamera = useUI((s) => s.setCamera)
+  const trend = useLive((s) => s.trend)
   if (!data) return <Empty icon={<Loader2 className="size-5 animate-spin text-slate-400" />}>Loading roster…</Empty>
   const { summary: sm, policy: p, groups, orders } = data
   const open = orders.find((o) => ['PROPOSED', 'ACTIVE', 'RESTORING'].includes(o.state)) ?? null
   const mins = groups.map((g) => g.minutes_today)
   const spread = mins.length ? Math.max(...mins) - Math.min(...mins) : 0
+  const maxMin = mins.length ? Math.max(...mins) : 0
+  const rosterMw = groups.reduce((a, g) => a + g.load_mw, 0)
+  const residualTone = sm.residual_mw > sm.od_limit_mw ? 'bad' : sm.residual_mw > p.min_residual_mw ? 'warn' : 'good'
+  const freqTone = f.frequency < p.emergency_freq ? 'bad' : f.frequency < p.trigger_freq ? 'warn' : 'good'
   const nextIn = sm.next_rotation ? Math.max(0, (sm.next_rotation - now) / 60) : null
   const discoms = [...new Set(groups.map((g) => g.discom))]
   const letters = [...new Set(groups.map((g) => g.letter))].sort()
@@ -100,25 +105,66 @@ export function SheddingPage() {
     <div className="flex h-full flex-col gap-3">
       <StatStrip>
         <Stat
-          label="Over-drawal flexibility can't cover"
+          icon={<TrendingUp />}
+          label="Uncovered OD"
           value={fmtMW(sm.residual_mw)}
-          sub={`trigger: > ${fmtMW(sm.od_limit_mw)} (DSM band) or f < ${p.trigger_freq.toFixed(2)} Hz`}
-          tone={sm.residual_mw > sm.od_limit_mw ? 'bad' : sm.residual_mw > p.min_residual_mw ? 'warn' : 'good'}
+          delta={{ text: `limit ${fmtMW(sm.od_limit_mw)}`, tone: residualTone }}
+          meter={sm.residual_mw / Math.max(1, sm.od_limit_mw)}
+          sub="after flexibility · trigger beyond DSM band"
+          tone={residualTone}
         />
-        <Stat label="Load shed now" value={fmtMW(sm.active_mw)} sub={`${sm.groups_out} roster group(s) out`} tone={sm.active_mw > 0 ? 'bad' : 'good'} />
         <Stat
+          icon={<Waves />}
+          label="Frequency"
+          value={`${f.frequency.toFixed(3)} Hz`}
+          delta={{ text: `< ${p.trigger_freq.toFixed(2)}`, tone: freqTone }}
+          spark={trend.slice(-120).map((x) => x.frequency)}
+          sub={`immediate below ${p.emergency_freq.toFixed(2)} Hz`}
+          tone={freqTone}
+        />
+        <Stat
+          icon={<Power />}
+          label="Load shed now"
+          value={fmtMW(sm.active_mw)}
+          delta={{ text: `${sm.groups_out}/${groups.length} groups`, tone: sm.groups_out ? 'bad' : 'good' }}
+          meter={sm.active_mw / Math.max(1, rosterMw)}
+          sub={`of ${fmtMW(rosterMw)} on roster`}
+          tone={sm.active_mw > 0 ? 'bad' : 'good'}
+        />
+        <Stat
+          icon={<ShieldCheck />}
           label="Order"
           value={open ? open.state.replace('_', ' ') : 'none'}
-          sub={open ? `${open.id} · ${fmtMW(open.mw)}` : 'flexibility first, shedding last'}
+          delta={
+            open ? { text: `${open.approvals.length}/${open.needs_dual ? 2 : 1} approvals`, tone: open.approvals.length >= (open.needs_dual ? 2 : 1) ? 'good' : 'warn' } : undefined
+          }
+          sub={open ? `${open.id} · ${fmtMW(open.mw)}${open.needs_dual ? ' · dual' : ''}` : 'flexibility first, shedding last'}
           tone={open ? (open.state === 'PROPOSED' ? 'warn' : 'bad') : 'good'}
         />
-        <Stat label="Next rotation" value={nextIn == null ? '—' : `${nextIn.toFixed(0)} min`} sub={`spells ≤ ${p.max_spell_min} min · ≤ ${p.max_daily_min} min/day`} />
         <Stat
-          label="Energy not served (order)"
+          icon={<Timer />}
+          label="Next rotation"
+          value={nextIn == null ? '—' : `${nextIn.toFixed(0)} min`}
+          meter={nextIn == null ? undefined : 1 - nextIn / Math.max(1, p.max_spell_min)}
+          sub={`spells ≤ ${p.max_spell_min} min · ≤ ${p.max_daily_min} min/day`}
+          tone={nextIn == null ? undefined : 'info'}
+        />
+        <Stat
+          icon={<Gauge />}
+          label="Energy not served"
           value={open ? `${(open.shed_minutes_mw / 60).toFixed(1)} MWh` : '—'}
           sub={open ? `${open.rotations} rotation(s) · peak ${fmtMW(open.peak_mw)}` : 'no active order'}
+          tone={open && open.shed_minutes_mw > 0 ? 'warn' : undefined}
         />
-        <Stat label="Fairness today" value={`${spread.toFixed(0)} min`} sub="spread between most and least shed group" tone={spread > p.max_spell_min * 1.5 ? 'warn' : undefined} />
+        <Stat
+          icon={<Scale />}
+          label="Fairness today"
+          value={`${spread.toFixed(0)} min`}
+          delta={{ text: `max ${maxMin.toFixed(0)}/${p.max_daily_min}`, tone: maxMin > p.max_daily_min * 0.8 ? 'warn' : undefined }}
+          meter={maxMin / Math.max(1, p.max_daily_min)}
+          sub="spread, most vs least shed group"
+          tone={spread > p.max_spell_min * 1.5 ? 'warn' : 'good'}
+        />
       </StatStrip>
 
       <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] gap-3">

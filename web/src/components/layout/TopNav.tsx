@@ -116,7 +116,7 @@ export function TopNav() {
       <nav className="flex items-stretch">
         {PRIMARY.map(({ id, label, icon: Icon }) => (
           <button key={id} onClick={() => go(id)} className={cn(tab, page === id && on)}>
-            <Icon className="size-4" />
+            <Icon className="size-4 max-[1365px]:hidden" />
             {label}
             {counts[id] && <span className={cn('ml-0.5 rounded-full px-1.5 text-[10px] font-bold tabular-nums', counts[id]!.tone)}>{counts[id]!.n}</span>}
           </button>
