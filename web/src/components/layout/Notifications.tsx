@@ -1,6 +1,6 @@
 // Notification inbox (top bar bell) and toast stack (bottom-right) for DR moments that need the operator.
 import { useState } from 'react'
-import { AlertOctagon, Bell, CheckCircle2, Check, Loader2, Send, X, XCircle, Zap } from 'lucide-react'
+import { AlertOctagon, Bell, CheckCircle2, Check, Loader2, Power, Send, X, XCircle, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { api } from '@/lib/api'
@@ -9,7 +9,7 @@ import { useAuth } from '@/store/useAuth'
 import { useNotify, type Notice } from '@/store/useNotify'
 import { useUI } from '@/store/useUI'
 
-const ICON = { event: Zap, approval: Bell, dispatch: Send, failure: XCircle, settled: CheckCircle2, closed: XCircle, alarm: AlertOctagon }
+const ICON = { event: Zap, approval: Bell, dispatch: Send, failure: XCircle, settled: CheckCircle2, closed: XCircle, alarm: AlertOctagon, shed: Power }
 const TONE = {
   info: 'bg-sky-100 text-sky-700',
   warn: 'bg-amber-100 text-amber-700',
@@ -78,7 +78,8 @@ export function NotificationBell() {
                 x={x}
                 onOpen={() => {
                   markRead(x.id)
-                  go(x.decisionId ? 'decisions' : 'alarms', x.decisionId)
+                  if (x.shedId) go('shedding')
+                  else go(x.decisionId ? 'decisions' : 'alarms', x.decisionId)
                 }}
               />
             ))
@@ -138,6 +139,21 @@ function Toast({ t }: { t: Notice }) {
         <div className="text-[13px] font-semibold text-slate-800">{t.title}</div>
         <div className="text-[12px] text-slate-600">{t.body}</div>
         {err && <div className="mt-1 text-[11px] text-rose-600">{err}</div>}
+        {t.shedId && (
+          <div className="mt-2 flex gap-2">
+            <Button
+              size="sm"
+              variant={t.tone === 'bad' ? 'destructive' : 'outline'}
+              className="h-7"
+              onClick={() => {
+                go('shedding')
+                dismiss(t.id)
+              }}
+            >
+              <Power className="size-3.5" /> {t.title.startsWith('Load shedding proposed') ? 'Review & approve' : 'Open roster'}
+            </Button>
+          </div>
+        )}
         {t.decisionId && (
           <div className="mt-2 flex gap-2">
             {t.kind === 'approval' && can('approve') && (

@@ -5,7 +5,7 @@ import type { Alarm, DecisionSummary } from '@/data/types'
 import { api } from '@/lib/api'
 import { fmtMW, fmtRs } from '@/lib/geo'
 
-export type NotifyKind = 'event' | 'approval' | 'dispatch' | 'failure' | 'settled' | 'closed' | 'alarm'
+export type NotifyKind = 'event' | 'approval' | 'dispatch' | 'failure' | 'settled' | 'closed' | 'alarm' | 'shed'
 
 export interface Notice {
   id: string
@@ -15,6 +15,8 @@ export interface Notice {
   title: string
   body: string
   decisionId?: string
+  /** load-shedding order this notice is about */
+  shedId?: string
   read: boolean
   /** toast stays until dismissed (operator action required) */
   sticky?: boolean
@@ -29,6 +31,7 @@ interface NotifyState {
   onDecision: (d: DecisionSummary) => void
   onCommandFailed: (c: { asset_name: string; note?: string; decision_id?: string }) => void
   onAlarm: (a: Alarm) => void
+  onShedding: (kind: string, ev: { msg: string; order: { id: string; mw: number; needs_dual: boolean } | null }) => void
   dismiss: (id: string) => void
   markAllRead: () => void
   markRead: (id: string) => void
@@ -40,7 +43,15 @@ const approvalBody = (d: DecisionSummary) =>
   `${fmtMW(d.awaiting_mw)} awaiting approval${d.needs_dual ? ' (dual authorisation)' : ''} for ${fmtMW(d.requirement_mw)} ${d.direction === 'UP' ? 'load reduction' : 'load increase'}.`
 let n = 0
 
+const recent = new Map<string, number>()
+
 function push(set: (fn: (s: NotifyState) => Partial<NotifyState>) => void, x: Omit<Notice, 'id' | 'ts' | 'read'>) {
+  // the same notice arriving twice (e.g. over a reconnecting stream) is shown once
+  const key = `${x.title}|${x.body}`
+  const seen = recent.get(key)
+  if (seen && Date.now() - seen < 15000) return
+  recent.set(key, Date.now())
+  if (recent.size > 200) recent.delete(recent.keys().next().value as string)
   const notice: Notice = { ...x, id: `n${Date.now()}-${n++}`, ts: Date.now(), read: false }
   set((s) => ({
     items: [notice, ...s.items].slice(0, MAX),
@@ -139,6 +150,27 @@ export const useNotify = create<NotifyState>((set, get) => ({
   onAlarm: (a) => {
     if (a.priority !== 1) return
     push(set, { kind: 'alarm', tone: 'bad', title: `Critical alarm: ${a.title}`, body: a.detail })
+  },
+
+  // load shedding means real outages: proposals stay up until handled; activation, rotations and restoration are reported
+  onShedding: (kind, ev) => {
+    const o = ev.order
+    if (kind === 'proposed')
+      push(set, {
+        kind: 'shed',
+        tone: 'bad',
+        title: `Load shedding proposed · ${fmtMW(o?.mw ?? 0)}`,
+        body: `${ev.msg}${o?.needs_dual ? ' Dual authorisation required.' : ''}`,
+        shedId: o?.id,
+        sticky: true,
+      })
+    else if (kind === 'activated') push(set, { kind: 'shed', tone: 'bad', title: 'Load shedding active', body: ev.msg, shedId: o?.id })
+    else if (kind === 'rotated' || kind === 'extended')
+      push(set, { kind: 'shed', tone: 'warn', title: kind === 'rotated' ? 'Roster rotation' : 'Shedding extended', body: ev.msg, shedId: o?.id })
+    else if (kind === 'exhausted') push(set, { kind: 'shed', tone: 'bad', title: 'Roster exhausted', body: ev.msg, shedId: o?.id, sticky: true })
+    else if (kind === 'completed') push(set, { kind: 'shed', tone: 'good', title: 'All feeders restored', body: ev.msg, shedId: o?.id })
+    else if (kind === 'rejected' || kind === 'lapsed')
+      push(set, { kind: 'shed', tone: 'info', title: kind === 'rejected' ? 'Shedding rejected' : 'Shedding proposal lapsed', body: ev.msg, shedId: o?.id })
   },
 
   dismiss: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id), items: s.items.map((x) => (x.id === id ? { ...x, read: true } : x)) })),

@@ -78,9 +78,10 @@ async def me(p: Principal = Depends(principal)):
 
 # ---------------------------------------------------------------- static model
 @router.get("/topology")
-async def get_topology(p: Principal = Depends(need("view"))):
+async def get_topology(request: Request, p: Principal = Depends(need("view"))):
     t = topology()
-    return {**t.raw, "channels": channels()}
+    roster = [{k: g.to_dict()[k] for k in ("id", "discom", "letter", "name", "channels", "protected", "lat", "lon")} for g in rt(request).roster.groups.values()]
+    return {**t.raw, "channels": channels(), "roster": roster, "shed_policy": asdict(rt(request).roster.policy)}
 
 
 # ---------------------------------------------------------------- live state & overview
@@ -364,6 +365,108 @@ async def patch_resource(asset_id: str, body: ResourceIn, request: Request, p: P
         (r.engine.out_of_service.add if body.out_of_service else r.engine.out_of_service.discard)(asset_id)
         r.audit.append(r.clock.now(), "CONFIG", p.username, f"{asset_id} {'out of service' if body.out_of_service else 'back in service'}: {body.reason}", asset_id)
     return {"id": asset_id, "out_of_service": body.out_of_service}
+
+
+# ---------------------------------------------------------------- emergency load management (rostering)
+@router.get("/shedding")
+async def shedding(request: Request, p: Principal = Depends(need("view"))):
+    r = rt(request)
+    s = r.state
+    unshed = r.unshed_load(s.bus_load) if s else {}
+    ro = r.roster
+    groups = []
+    for g in ro.groups.values():
+        d = g.to_dict()
+        d["mw_now"] = round(ro.group_mw(g, unshed), 1)
+        d["load_mw"] = round(sum(unshed.get(b, 0.0) * f for b, f in g.bus_frac.items()), 1)
+        groups.append(d)
+    orders = sorted((o.to_dict() for o in ro.orders.values()), key=lambda o: -o["created"])[:30]
+    return {"policy": asdict(ro.policy), "summary": ro.summary(unshed), "groups": groups, "orders": orders}
+
+
+class ShedIn(BaseModel):
+    mw: float = Field(..., gt=0, le=3000)
+    reason: str = Field(..., min_length=3)
+
+
+@router.post("/shedding/orders")
+async def shed_propose(body: ShedIn, request: Request, p: Principal = Depends(need("shed_propose"))):
+    r = rt(request)
+    async with r.lock:
+        try:
+            o = r.roster.propose(body.mw, body.reason, f"operator:{p.username}", r.clock.now())
+        except ValueError as e:
+            raise HTTPException(409, str(e))
+        r._drain_roster(r.clock.now())
+    return o.to_dict()
+
+
+@router.post("/shedding/orders/{order_id}/approve")
+async def shed_approve(order_id: str, request: Request, p: Principal = Depends(need("shed"))):
+    r = rt(request)
+    async with r.lock:
+        if order_id not in r.roster.orders:
+            raise HTTPException(404)
+        try:
+            o = r.roster.approve(order_id, p.username, p.role, p.can("approve_dual"), r.clock.now(), r.unshed_load(r.state.bus_load))
+        except ValueError as e:
+            raise HTTPException(409, str(e))
+        except PermissionError as e:
+            raise HTTPException(403, str(e))
+        r.field.shed_frac = r.roster.shed_fraction()
+        r._drain_roster(r.clock.now())
+    return o.to_dict()
+
+
+@router.post("/shedding/orders/{order_id}/reject")
+async def shed_reject(order_id: str, body: ReasonIn, request: Request, p: Principal = Depends(need("shed"))):
+    r = rt(request)
+    async with r.lock:
+        if order_id not in r.roster.orders:
+            raise HTTPException(404)
+        try:
+            o = r.roster.reject(order_id, p.username, body.reason, r.clock.now())
+        except ValueError as e:
+            raise HTTPException(409, str(e))
+        r._drain_roster(r.clock.now())
+    return o.to_dict()
+
+
+@router.post("/shedding/restore")
+async def shed_restore(body: ReasonIn, request: Request, p: Principal = Depends(need("shed"))):
+    r = rt(request)
+    async with r.lock:
+        o = r.roster.restore_all(p.username, body.reason, r.clock.now())
+        if not o:
+            raise HTTPException(409, "No load-shedding order is open")
+        r._drain_roster(r.clock.now())
+    return o.to_dict()
+
+
+class ShedPolicyIn(BaseModel):
+    max_spell_min: float | None = Field(None, ge=5, le=240)
+    max_daily_min: float | None = Field(None, ge=10, le=600)
+    trigger_freq: float | None = Field(None, ge=49.5, le=50.0)
+    emergency_freq: float | None = Field(None, ge=49.0, le=50.0)
+    min_residual_mw: float | None = Field(None, ge=10, le=1000)
+    od_limit_mw: float | None = Field(None, ge=0, le=2000)
+    od_limit_follow_dsm: bool | None = None  # true → trigger follows the DSM deviation band again
+    dual_auth_mw: float | None = Field(None, ge=0)
+
+
+@router.put("/shedding/policy")
+async def shed_policy(body: ShedPolicyIn, request: Request, p: Principal = Depends(need("config"))):
+    r = rt(request)
+    async with r.lock:
+        upd = body.model_dump(exclude_none=True)
+        follow = upd.pop("od_limit_follow_dsm", False)
+        for k, v in upd.items():
+            setattr(r.roster.policy, k, v)
+        if follow:
+            r.roster.policy.od_limit_mw = None
+        v = await r.store.put_config("shed_policy", asdict(r.roster.policy), p.username, r.clock.now())
+        r.audit.append(r.clock.now(), "CONFIG", p.username, f"Load-shedding policy v{v}: {body.model_dump(exclude_none=True)}")
+    return asdict(r.roster.policy)
 
 
 # ---------------------------------------------------------------- what-if sandbox (no side effects)

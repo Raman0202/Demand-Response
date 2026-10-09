@@ -16,10 +16,10 @@ export function shapeXY(lon: number, lat: number): [number, number] {
 }
 
 export function loadingColor(v: number) {
-  if (v >= 1) return '#ef5a5a'
-  if (v >= 0.9) return '#f59a4a'
-  if (v >= 0.75) return '#e8b931'
-  return '#4cbf8b'
+  if (v >= 1) return '#cf5958'
+  if (v >= 0.9) return '#d9824f'
+  if (v >= 0.75) return '#db982f'
+  return '#47a37b'
 }
 
 export function fmtMW(v: number, digits = 0) {

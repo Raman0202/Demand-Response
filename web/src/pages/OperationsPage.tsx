@@ -266,12 +266,12 @@ function GenTab() {
         <Bar
           height={12}
           segments={[
-            { value: mix.coal ?? 0, color: '#94a3b8', label: 'Coal' },
-            { value: mix.hydro ?? 0, color: '#7dd3fc', label: 'Hydro' },
-            { value: mix.nuclear ?? 0, color: '#c4b5fd', label: 'Nuclear' },
-            { value: mix.solar ?? 0, color: '#fcd34d', label: 'Solar' },
-            { value: mix.wind ?? 0, color: '#bef264', label: 'Wind' },
-            { value: Object.values(f.injections).reduce((a, b) => a + Math.max(0, b), 0), color: '#e9d5ff', label: 'ISTS import' },
+            { value: mix.coal ?? 0, color: '#96a1ae', label: 'Coal' },
+            { value: mix.hydro ?? 0, color: '#8bb0da', label: 'Hydro' },
+            { value: mix.nuclear ?? 0, color: '#cbc5ec', label: 'Nuclear' },
+            { value: mix.solar ?? 0, color: '#e6b45a', label: 'Solar' },
+            { value: mix.wind ?? 0, color: '#c2d99a', label: 'Wind' },
+            { value: Object.values(f.injections).reduce((a, b) => a + Math.max(0, b), 0), color: '#e5e2f6', label: 'ISTS import' },
           ]}
         />
         <div className="flex flex-wrap gap-x-3 text-[10px] text-slate-500">

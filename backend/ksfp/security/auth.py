@@ -14,11 +14,11 @@ from dataclasses import dataclass
 import jwt
 
 ROLES: dict[str, set[str]] = {
-    "operator": {"view", "ack_alarm", "approve", "reject", "abort", "whatif"},
-    "shift_in_charge": {"view", "ack_alarm", "shelve_alarm", "approve", "approve_dual", "reject", "abort", "autonomy", "whatif", "resources"},
+    "operator": {"view", "ack_alarm", "approve", "reject", "abort", "whatif", "shed_propose"},
+    "shift_in_charge": {"view", "ack_alarm", "shelve_alarm", "approve", "approve_dual", "reject", "abort", "autonomy", "whatif", "resources", "shed_propose", "shed"},
     "analyst": {"view", "whatif", "reports"},
     "engineer": {"view", "ack_alarm", "whatif", "reports", "config", "simulator", "resources"},
-    "admin": {"view", "ack_alarm", "shelve_alarm", "approve", "approve_dual", "reject", "abort", "autonomy", "whatif", "reports", "config", "simulator", "resources", "users"},
+    "admin": {"view", "ack_alarm", "shelve_alarm", "approve", "approve_dual", "reject", "abort", "autonomy", "whatif", "reports", "config", "simulator", "resources", "users", "shed_propose", "shed"},
 }
 
 ROLE_LABEL = {

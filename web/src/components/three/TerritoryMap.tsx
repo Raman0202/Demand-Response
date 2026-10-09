@@ -5,7 +5,7 @@ import { Battery, Cable, Diamond, Factory, Layers, Map as MapIcon, Mountain, Rad
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { ASSET_TYPE_META, ASSETS, BUS_BY_ID, BUSES, DISCOM_COLORS, GEN_STATIONS, GENERATORS, LINES, LOAD_CHANNELS, SLDC, lineLabel } from '@/data/topology'
+import { ASSET_TYPE_META, ASSETS, BUS_BY_ID, BUSES, DISCOM_COLORS, GEN_STATIONS, GENERATORS, GROUP_OF_CHANNEL, LINES, LOAD_CHANNELS, SLDC, lineLabel } from '@/data/topology'
 import type { Asset, Frame } from '@/data/types'
 import { fmtMW, loadingColor, project, STATE_TOP } from '@/lib/geo'
 import { affected, worldOf, type Sel } from '@/lib/spatial'
@@ -45,7 +45,7 @@ export interface MapChrome {
 export function TerritoryMap({ overlay, className, compact, chrome }: { overlay?: MapOverlay; className?: string; compact?: boolean; chrome?: MapChrome }) {
   const frame = useLive((s) => s.frame)
   const layers = useUI((s) => s.layers)
-  if (!frame) return <div className={cn('grid h-full place-items-center rounded-xl border bg-[#f1f5fb] text-sm text-muted-foreground', className)}>Waiting for live state…</div>
+  if (!frame) return <div className={cn('grid h-full place-items-center rounded-xl border bg-[#eef1f5] text-sm text-muted-foreground', className)}>Waiting for live state…</div>
   return <MapInner frame={frame} overlay={overlay} className={className} compact={compact} layers={layers} chrome={chrome ?? {}} />
 }
 
@@ -109,23 +109,23 @@ function MapInner({
   }, [loading])
 
   return (
-    <div className={cn('relative h-full min-h-[280px] w-full overflow-hidden bg-[#f1f5fb]', !chrome.bare && 'rounded-xl border', className)}>
+    <div className={cn('relative h-full min-h-[280px] w-full overflow-hidden bg-[#eef1f5]', !chrome.bare && 'rounded-xl border', className)}>
       <Canvas flat camera={{ position: [0.4, 11.2, 8.8], fov: 42, near: 0.05, far: 200 }} dpr={[1, 2]} gl={{ antialias: true }}>
-        <color attach="background" args={['#f1f5fb']} />
-        <fog attach="fog" args={['#f1f5fb', 16, 34]} />
+        <color attach="background" args={['#eef1f5']} />
+        <fog attach="fog" args={['#eef1f5', 16, 34]} />
         <ambientLight intensity={0.95} />
         <directionalLight position={[5, 10, 4]} intensity={1.1} />
-        <directionalLight position={[-6, 4, -5]} intensity={0.35} color="#7dd3fc" />
+        <directionalLight position={[-6, 4, -5]} intensity={0.35} color="#8bb0da" />
         <Suspense fallback={null}>
           <Grid
             position={[0, -0.001, 0]}
             args={[40, 40]}
             cellSize={0.4}
             cellThickness={0.4}
-            cellColor="#e1e8f2"
+            cellColor="#e3e8ee"
             sectionSize={2}
             sectionThickness={0.8}
-            sectionColor="#cdd8e8"
+            sectionColor="#d5dce5"
             fadeDistance={26}
             infiniteGrid
           />
@@ -133,7 +133,7 @@ function MapInner({
           {layers.heat && <HeatLayer busLoad={frame.bus_load} stress={stress} />}
           {layers.grid && <GridLines flows={frame.flows} loading={loading} outaged={frame.outaged} showFlows={layers.flows} highlight={highlight} />}
           {layers.grid && <Substations stress={stress} />}
-          {layers.ch220 && <LoadChannels channels={frame.channels} />}
+          {layers.ch220 && <LoadChannels channels={frame.channels} shed={frame.shedding?.shed_channels} />}
           {layers.genStations && <GenStations channels={frame.channels} />}
           {layers.generation && <Generators output={frame.gen_output} focus={focus} />}
           <FlexAssets assets={assets} focus={focus} layers={layers} />
@@ -172,7 +172,7 @@ const CAMS: { id: CameraPreset; label: string }[] = [
 const LAYER_DEFS: { k: keyof MapLayers; label: string; icon: typeof Zap }[] = [
   { k: 'grid', label: '400/765 kV grid', icon: Zap },
   { k: 'flows', label: 'Animated power flow', icon: Waves },
-  { k: 'ch220', label: '220 kV load channels (all DISCOMs)', icon: Cable },
+  { k: 'ch220', label: '220 kV feeders — live flow & shedding (all DISCOMs)', icon: Cable },
   { k: 'genStations', label: 'Generating stations', icon: Diamond },
   { k: 'generation', label: 'Generation complexes', icon: Mountain },
   { k: 'dr', label: 'DR fleets', icon: Factory },
@@ -318,11 +318,26 @@ function describe(sel: NonNullable<Selection>, frame: Frame, loading: Record<str
   if (sel.kind === 'channel') {
     const c = LOAD_CHANNELS.find((x) => x.id === sel.id)!
     const v = frame.channels[c.id]
+    const g = GROUP_OF_CHANNEL[c.id]
+    const off = !!frame.shedding?.shed_channels[c.id]
+    const sheddable = (v?.mw ?? 0) * 0.3
     return {
       title: `${c.name} 220 kV`,
-      sub: `${c.discom} · parent bus ${BUS_BY_ID[c.parent_bus]?.name.split(' ')[0]}`,
+      sub: `${c.discom} · fed from ${BUS_BY_ID[c.parent_bus]?.name.split(' ')[0]} 400 kV`,
       rows: [
+        ['Feeder status', off ? 'SHED — non-essential feeders open' : 'In service'],
         ['Load', v ? fmtMW(v.mw, 1) : '—'],
+        ['Roster group', g ? `${g.discom} ${g.letter} (${g.channels.length} stations)` : '—'],
+        ['On roster (non-essential)', off ? 'disconnected' : `≈ ${fmtMW(sheddable)}`],
+        [
+          'Never shed',
+          g
+            ? Object.entries(g.protected)
+                .filter(([, n]) => n > 0)
+                .map(([k, n]) => `${k} ${n}`)
+                .join(' · ')
+            : '—',
+        ],
         ['Source', v?.src === 'KPTCL' ? 'KPTCL SLDC (live)' : 'Simulated (KPTCL page not reachable)'],
       ],
     }
@@ -399,7 +414,7 @@ const AnchoredCard = ({
   const base = sel ? describe(sel, frame, loading) : null
   const over = sel && rowsFor ? rowsFor(sel) : null
   const d = base && over ? { ...base, rows: over } : base
-  const bad = d?.rows.some(([, v]) => String(v).startsWith('LOST') || v === 'OUTAGE')
+  const bad = d?.rows.some(([, v]) => String(v).startsWith('LOST') || String(v).startsWith('SHED') || v === 'OUTAGE')
   return (
     <div
       ref={ref}

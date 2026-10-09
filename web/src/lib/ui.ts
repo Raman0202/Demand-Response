@@ -13,8 +13,8 @@ export function freqClass(f: number) {
 }
 
 export const chartTooltip = {
-  contentStyle: { background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 10, fontSize: 12, boxShadow: '0 4px 14px rgba(15,23,42,0.08)' },
-  labelStyle: { color: '#64748b' },
+  contentStyle: { background: '#ffffff', border: '1px solid #dde2e8', borderRadius: 10, fontSize: 12, boxShadow: '0 4px 14px rgba(15,23,42,0.08)' },
+  labelStyle: { color: '#6a7686' },
 }
 
 /** "+12" / "−40" / "0" — avoids rendering "-0" for values that round to zero */

@@ -84,6 +84,27 @@ export interface Topology {
   generators: Generator[]
   assets: Asset[]
   channels: { load_channels: LoadChannel[]; gen_stations: GenStation[]; sources: { discom_pages: string[]; generation_page: string } }
+  roster: RosterGroupDef[]
+}
+/** A load-shedding roster group: a DISCOM's block (A–D) of 220 kV stations whose non-essential feeders rotate. */
+export interface RosterGroupDef {
+  id: string
+  discom: string
+  letter: string
+  name: string
+  channels: string[]
+  protected: Record<string, number>
+  lat: number
+  lon: number
+}
+export interface SheddingSummary {
+  active_mw: number
+  groups_out: number
+  residual_mw: number
+  od_limit_mw: number
+  order: { id: string; state: string; mw: number; needs_dual: boolean; approvals: number } | null
+  next_rotation: number | null
+  shed_channels: Record<string, string>
 }
 
 export type Severity = 'NORMAL' | 'ALERT' | 'EMERGENCY'
@@ -146,6 +167,7 @@ export interface Frame {
   autonomy: { level: number; effective: number; reasons: string[]; suspended: boolean }
   counts: { alarms: number; p1: number; unacked: number; decisions_open: number; awaiting: number }
   active_decision: DecisionSummary | null
+  shedding?: SheddingSummary
   live_setpoints: Record<string, number>
   source: { mode: string; kptcl: { ok: number; total: number; live: number } | null }
   loop_ms: number

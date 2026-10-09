@@ -106,10 +106,12 @@ export const useLive = create<LiveState>((set, get) => ({
           priority = a.priority
         } else if (msg.topic.startsWith('decision.')) title = `Decision ${d.id}: ${d.state} — ${d.headline ?? ''}`
         else if (msg.topic.startsWith('command.')) title = `${msg.topic.split('.')[1]}: ${d.asset_name} ${d.setpoint} MW`
+        else if (msg.topic.startsWith('shedding.')) title = d.msg
         const nf = useNotify.getState()
         if (msg.topic === 'decision.updated') nf.onDecision(d)
         else if (msg.topic === 'command.failed') nf.onCommandFailed(d)
         else if (msg.topic === 'alarm.raised') nf.onAlarm(d as Alarm)
+        else if (msg.topic.startsWith('shedding.')) nf.onShedding(msg.topic.split('.')[1], d)
         set((s) => ({
           events: [{ id: `${Date.now()}-${Math.random()}`, ts: Date.now(), topic: msg.topic, title, priority }, ...s.events].slice(0, 100),
           rev: s.rev + 1,

@@ -132,6 +132,7 @@ class DecisionEngine:
     last_block: int = -1
     trigger_since: float | None = None  # anti-flapping: condition must persist TRIGGER_HOLD_S
     log: list[tuple[str, str, str]] = field(default_factory=list)  # (kind, decision_id, message) drained by runtime
+    relief_mw: float = 0.0  # load currently shed by the roster manager (set by the runtime every tick)
 
     # ---------------------------------------------------------------- helpers
     def active(self) -> Decision | None:
@@ -151,10 +152,11 @@ class DecisionEngine:
     def underlying_requirement(self, a: Assessment, d: Decision | None) -> float:
         delivered = sum(self._active_mw(d, a).values())
         if d is None:
-            return a.requirement_mw
-        # requirement in the decision's direction, with our own delivery backed out
+            return a.requirement_mw + (self.relief_mw if a.direction == "UP" else 0.0)
+        # requirement in the decision's direction, with our own delivery (and any load shed) backed out:
+        # flexibility stays sized to the full over-drawal, so shedding is what gets released first
         signed = -a.ace.ace if d.direction == "UP" else a.ace.ace
-        return max(0.0, signed + delivered)
+        return max(0.0, signed + delivered + (self.relief_mw if d.direction == "UP" else 0.0))
 
     # ---------------------------------------------------------------- main entry (called every tick)
     def step(self, a: Assessment, now: float, forecast: dict | None, incident_id: str | None, loop_healthy: bool = True) -> list[Decision]:
@@ -381,11 +383,16 @@ class DecisionEngine:
     def _narrative(self, d: Decision, a: Assessment, plan, twin, policy, forecast, best, allocs) -> dict:
         t = topology()
         s = a.state
-        dirn = "short" if a.direction == "UP" else "long (surplus)"
+        # describe the event's own need (with our delivery and any load shed added back), not the instantaneous
+        # ACE — once flexibility and shedding act, the momentary reading can flip direction without the need being gone
+        need = self.underlying_requirement(a, d)
+        dirn = "short" if d.direction == "UP" else "long (surplus)"
         situation = (
-            f"The control area is {('over' if a.deviation_mw >= 0 else 'under')}-drawing {abs(a.deviation_mw):.0f} MW against schedule at {s.frequency:.3f} Hz; "
-            f"ACE {a.ace.ace:+.0f} MW — it is {dirn} by {a.requirement_mw:.0f} MW ({a.severity})."
+            f"The control area is {('over' if a.deviation_mw >= 0 else 'under')}-drawing {abs(a.deviation_mw):.0f} MW against schedule at {s.frequency:.3f} Hz "
+            f"(ACE {a.ace.ace:+.0f} MW). Underlying need: {dirn} by {need:.0f} MW ({d.severity})."
         )
+        if self.relief_mw > 0.5 and d.direction == "UP":
+            situation += f" {self.relief_mw:.0f} MW of load is currently shed under the roster."
         impact_bits = [f"DSM exposure {fmt_rs(a.dsm.amount_rs)} per 15-min block (NR ₹{a.dsm.nr.nr:.2f}/kWh, {a.dsm.freq_band} frequency band)."]
         if s.flow.max_loading >= 0.9:
             impact_bits.append(f"Network: {t.line_label(s.flow.max_line)} at {s.flow.max_loading * 100:.0f}%.")
@@ -411,7 +418,7 @@ class DecisionEngine:
         action = f"{policy['level_name']}: {auto_mw:.0f} MW executing automatically" + (f"; {appr_mw:.0f} MW awaiting operator approval" + (" (dual authorisation)" if d.needs_dual else "") if appr_mw > 0.5 else "") + "."
         if not twin.ok:
             action += " Digital Twin flagged issues — see checks."
-        headline = f"{a.direction} {a.requirement_mw:.0f} MW · {len(allocs)} resources · {('awaiting approval' if d.awaiting else 'executing')}"
+        headline = f"{d.direction} {need:.0f} MW · {len(allocs)} resources · {('awaiting approval' if d.awaiting else 'executing')}"
         return {
             "headline": headline,
             "situation": situation,

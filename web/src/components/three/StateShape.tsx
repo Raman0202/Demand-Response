@@ -19,8 +19,8 @@ export function StateShape() {
     const pos = g.attributes.position
     const colors = new Float32Array(pos.count * 3)
     const c = new THREE.Color()
-    const west = new THREE.Color('#cdebdc')
-    const east = new THREE.Color('#dbe3f4')
+    const west = new THREE.Color('#d5ede0')
+    const east = new THREE.Color('#dbe7f4')
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i)
       const t = THREE.MathUtils.clamp((x + 3.2) / 6.5, 0, 1)
@@ -44,10 +44,10 @@ export function StateShape() {
   return (
     <group>
       <mesh geometry={geometry} receiveShadow>
-        <meshStandardMaterial vertexColors roughness={0.95} metalness={0} emissive="#f4f8ff" emissiveIntensity={0.28} />
+        <meshStandardMaterial vertexColors roughness={0.95} metalness={0} emissive="#eef4fa" emissiveIntensity={0.28} />
       </mesh>
       <Line points={outline} color="#60a5fa" lineWidth={2} transparent opacity={0.9} />
-      <Line points={outline.map((p) => new THREE.Vector3(p.x, 0.005, p.z))} color="#93c5fd" lineWidth={1} transparent opacity={0.5} />
+      <Line points={outline.map((p) => new THREE.Vector3(p.x, 0.005, p.z))} color="#b7cfe9" lineWidth={1} transparent opacity={0.5} />
     </group>
   )
 }
@@ -72,7 +72,7 @@ export function HeatLayer({ busLoad, stress }: { busLoad: Record<string, number>
         const [x, z] = project(b.lon, b.lat)
         const r = 0.25 + Math.sqrt(busLoad[b.id] ?? 0) / 55
         const s = stress[b.id] ?? 0
-        const col = s >= 1 ? '#f87171' : s >= 0.9 ? '#fb923c' : s >= 0.75 ? '#fbbf24' : '#7dd3fc'
+        const col = s >= 1 ? '#cf5958' : s >= 0.9 ? '#d9824f' : s >= 0.75 ? '#db982f' : '#8bb0da'
         return (
           <mesh key={b.id} position={[x, STATE_TOP + 0.004, z]} rotation={[-Math.PI / 2, 0, 0]}>
             <planeGeometry args={[r * 2, r * 2]} />

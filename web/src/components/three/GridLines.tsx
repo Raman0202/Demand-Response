@@ -64,7 +64,7 @@ export function GridLines({
         const out = outaged.includes(line.id)
         const v = loading[line.id] ?? 0
         const width = line.kv === 765 ? 3.2 : line.kv === 400 ? 2.2 : 1.3
-        const color = out ? '#94a3b8' : line.hvdc ? '#a78bfa' : loadingColor(v)
+        const color = out ? '#96a1ae' : line.hvdc ? '#8b7ccd' : loadingColor(v)
         const isSel = selection?.kind === 'line' && selection.id === line.id
         const hl = highlight?.includes(line.id)
         return (
@@ -88,7 +88,7 @@ export function GridLines({
               }}
               onPointerOut={() => hover(null)}
             />
-            {(v >= 1 || hl) && !out && <Line points={pts} color={v >= 1 ? '#ef4444' : '#f97316'} lineWidth={width + 7} transparent opacity={0.18} />}
+            {(v >= 1 || hl) && !out && <Line points={pts} color={v >= 1 ? '#b83b3a' : '#c8622a'} lineWidth={width + 7} transparent opacity={0.18} />}
           </group>
         )
       })}
@@ -145,7 +145,7 @@ function FlowParticles({
         tmp.scale.setScalar(g.line.kv === 220 ? 0.65 : 1)
         tmp.updateMatrix()
         m.setMatrixAt(idx, tmp.matrix)
-        col.set(g.line.hvdc ? '#7c3aed' : v >= 1 ? '#dc2626' : v >= 0.9 ? '#ea580c' : '#0284c7')
+        col.set(g.line.hvdc ? '#5c4c9b' : v >= 1 ? '#982e2d' : v >= 0.9 ? '#a9501f' : '#2a5894')
         m.setColorAt(idx, col)
       }
     })

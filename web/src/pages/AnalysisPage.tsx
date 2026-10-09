@@ -46,16 +46,16 @@ export function AnalysisPage() {
         <Panel title="ACE forecast — next 8 blocks (P50, P10–P90)" className="col-span-2">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={rows}>
-              <CartesianGrid stroke="#eef2f7" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#94a3b8' }} />
-              <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} width={44} />
-              <ReferenceLine y={0} stroke="#cbd5e1" />
-              <ReferenceLine y={100} stroke="#fcd34d" strokeDasharray="4 4" />
-              <ReferenceLine y={-100} stroke="#fcd34d" strokeDasharray="4 4" />
+              <CartesianGrid stroke="#e6eaef" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#96a1ae' }} />
+              <YAxis tick={{ fontSize: 10, fill: '#96a1ae' }} width={44} />
+              <ReferenceLine y={0} stroke="#c4ccd5" />
+              <ReferenceLine y={100} stroke="#e6b45a" strokeDasharray="4 4" />
+              <ReferenceLine y={-100} stroke="#e6b45a" strokeDasharray="4 4" />
               <RTooltip {...chartTooltip} />
               <Legend {...legend} />
-              <Area dataKey="aceBand" stroke="none" fill="#c4b5fd66" isAnimationActive={false} name="P10–P90 band" />
-              <Line dataKey="ace" stroke="#7c3aed" strokeWidth={2} dot={{ r: 2 }} isAnimationActive={false} name="ACE P50" />
+              <Area dataKey="aceBand" stroke="none" fill="#cbc5ec66" isAnimationActive={false} name="P10–P90 band" />
+              <Line dataKey="ace" stroke="#5c4c9b" strokeWidth={2} dot={{ r: 2 }} isAnimationActive={false} name="ACE P50" />
             </ComposedChart>
           </ResponsiveContainer>
         </Panel>
@@ -78,58 +78,58 @@ export function AnalysisPage() {
         <Panel title="Demand & renewables forecast (MW)">
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart data={rows}>
-              <CartesianGrid stroke="#eef2f7" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#94a3b8' }} />
+              <CartesianGrid stroke="#e6eaef" vertical={false} />
+              <XAxis dataKey="label" tick={{ fontSize: 10, fill: '#96a1ae' }} />
               <YAxis
                 yAxisId="d"
-                tick={{ fontSize: 10, fill: '#94a3b8' }}
+                tick={{ fontSize: 10, fill: '#96a1ae' }}
                 width={44}
                 domain={[(m: number) => Math.floor((m - 300) / 500) * 500, (m: number) => Math.ceil((m + 300) / 500) * 500]}
                 tickFormatter={mw}
               />
-              <YAxis yAxisId="r" orientation="right" tick={{ fontSize: 10, fill: '#94a3b8' }} width={40} />
+              <YAxis yAxisId="r" orientation="right" tick={{ fontSize: 10, fill: '#96a1ae' }} width={40} />
               <RTooltip {...chartTooltip} />
               <Legend {...legend} />
-              <Area yAxisId="d" dataKey="demandBand" stroke="none" fill="#bae6fd88" isAnimationActive={false} legendType="none" />
-              <Line yAxisId="d" dataKey="demand" name="Demand P50 (left)" stroke="#0284c7" strokeWidth={2} dot={false} isAnimationActive={false} />
-              <Area yAxisId="r" dataKey="reBand" stroke="none" fill="#d9f99d88" isAnimationActive={false} legendType="none" />
-              <Line yAxisId="r" dataKey="re" name="Renewables P50 (right)" stroke="#65a30d" strokeWidth={2} dot={false} isAnimationActive={false} />
+              <Area yAxisId="d" dataKey="demandBand" stroke="none" fill="#b7cfe988" isAnimationActive={false} legendType="none" />
+              <Line yAxisId="d" dataKey="demand" name="Demand P50 (left)" stroke="#2a5894" strokeWidth={2} dot={false} isAnimationActive={false} />
+              <Area yAxisId="r" dataKey="reBand" stroke="none" fill="#c2d99a88" isAnimationActive={false} legendType="none" />
+              <Line yAxisId="r" dataKey="re" name="Renewables P50 (right)" stroke="#5f8a2e" strokeWidth={2} dot={false} isAnimationActive={false} />
             </ComposedChart>
           </ResponsiveContainer>
         </Panel>
         <Panel title={`Recent behaviour — frequency & ACE (live, ${t.length} samples)`}>
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={t}>
-              <CartesianGrid stroke="#eef2f7" vertical={false} />
-              <XAxis dataKey="t" tick={{ fontSize: 10, fill: '#94a3b8' }} minTickGap={40} />
-              <YAxis yAxisId="f" domain={[49.75, 50.15]} tick={{ fontSize: 10, fill: '#94a3b8' }} width={40} />
-              <YAxis yAxisId="a" orientation="right" tick={{ fontSize: 10, fill: '#94a3b8' }} width={40} />
-              <ReferenceLine yAxisId="f" y={49.9} stroke="#fcd34d" strokeDasharray="3 3" />
+              <CartesianGrid stroke="#e6eaef" vertical={false} />
+              <XAxis dataKey="t" tick={{ fontSize: 10, fill: '#96a1ae' }} minTickGap={40} />
+              <YAxis yAxisId="f" domain={[49.75, 50.15]} tick={{ fontSize: 10, fill: '#96a1ae' }} width={40} />
+              <YAxis yAxisId="a" orientation="right" tick={{ fontSize: 10, fill: '#96a1ae' }} width={40} />
+              <ReferenceLine yAxisId="f" y={49.9} stroke="#e6b45a" strokeDasharray="3 3" />
               <RTooltip {...chartTooltip} />
               <Legend {...legend} />
-              <Line yAxisId="f" dataKey="frequency" name="Frequency Hz (left)" stroke="#0ea5e9" dot={false} isAnimationActive={false} />
-              <Line yAxisId="a" dataKey="ace" name="ACE MW (right)" stroke="#8b5cf6" dot={false} isAnimationActive={false} />
+              <Line yAxisId="f" dataKey="frequency" name="Frequency Hz (left)" stroke="#3a6fb0" dot={false} isAnimationActive={false} />
+              <Line yAxisId="a" dataKey="ace" name="ACE MW (right)" stroke="#7160b8" dot={false} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
         </Panel>
         <Panel title="Drawal vs schedule & data confidence">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={t}>
-              <CartesianGrid stroke="#eef2f7" vertical={false} />
-              <XAxis dataKey="t" tick={{ fontSize: 10, fill: '#94a3b8' }} minTickGap={40} />
+              <CartesianGrid stroke="#e6eaef" vertical={false} />
+              <XAxis dataKey="t" tick={{ fontSize: 10, fill: '#96a1ae' }} minTickGap={40} />
               <YAxis
                 yAxisId="d"
-                tick={{ fontSize: 10, fill: '#94a3b8' }}
+                tick={{ fontSize: 10, fill: '#96a1ae' }}
                 width={44}
                 domain={['dataMin - 200', 'dataMax + 200']}
                 tickFormatter={(v: number) => `${(v / 1000).toFixed(1)}k`}
               />
-              <YAxis yAxisId="c" orientation="right" domain={[0.6, 1]} tick={{ fontSize: 10, fill: '#94a3b8' }} width={34} />
+              <YAxis yAxisId="c" orientation="right" domain={[0.6, 1]} tick={{ fontSize: 10, fill: '#96a1ae' }} width={34} />
               <RTooltip {...chartTooltip} formatter={(v, n) => (n === 'confidence' ? `${(Number(v) * 100).toFixed(0)}%` : fmtMW(Number(v)))} />
               <Legend {...legend} />
-              <Line yAxisId="d" dataKey="drawal" name="Drawal" stroke="#f97316" dot={false} isAnimationActive={false} />
-              <Line yAxisId="d" dataKey="schedule" name="Schedule" stroke="#94a3b8" strokeDasharray="5 4" dot={false} isAnimationActive={false} />
-              <Line yAxisId="c" dataKey="confidence" name="Data confidence (right)" stroke="#10b981" dot={false} isAnimationActive={false} />
+              <Line yAxisId="d" dataKey="drawal" name="Drawal" stroke="#c8622a" dot={false} isAnimationActive={false} />
+              <Line yAxisId="d" dataKey="schedule" name="Schedule" stroke="#96a1ae" strokeDasharray="5 4" dot={false} isAnimationActive={false} />
+              <Line yAxisId="c" dataKey="confidence" name="Data confidence (right)" stroke="#2a8761" dot={false} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
         </Panel>

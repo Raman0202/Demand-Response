@@ -124,3 +124,13 @@ export function selectionLabel(sel: Sel): string {
 export function frameAssets(ids: string[]): { x: number; z: number; dist: number } | null {
   return ids.length ? worldOf({ kind: 'event', id: '' }, ids) : null
 }
+
+/** Camera framing for any set of map points (centroid, pulled back by their spread). */
+export function framePoints(pts: { lon: number; lat: number }[]): { x: number; z: number; dist: number } | null {
+  if (!pts.length) return null
+  const xy = pts.map((p) => project(p.lon, p.lat))
+  const x = xy.reduce((s, p) => s + p[0], 0) / xy.length
+  const z = xy.reduce((s, p) => s + p[1], 0) / xy.length
+  const spread = Math.max(...xy.map((p) => Math.hypot(p[0] - x, p[1] - z)), 0.4)
+  return { x, z, dist: Math.min(12, 3 + spread * 2.6) }
+}

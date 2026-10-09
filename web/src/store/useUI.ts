@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { worldOf } from '@/lib/spatial'
 
-export type Page = 'command' | 'operations' | 'decisions' | 'alarms' | 'analysis' | 'whatif' | 'resources' | 'reports' | 'admin'
+export type Page = 'command' | 'operations' | 'decisions' | 'shedding' | 'alarms' | 'analysis' | 'whatif' | 'resources' | 'reports' | 'admin'
 
 export type CameraPreset = 'STATE' | 'BENGALURU' | 'NORTH' | 'COAST' | 'TILT'
 
@@ -60,7 +60,8 @@ export const useUI = create<UIState>((set) => ({
   hovered: null,
   fly: null,
   playhead: null,
-  go: (page, decisionId) => set((s) => ({ page, decisionId: decisionId === undefined ? s.decisionId : decisionId, selection: null, playhead: null })),
+  // each page opens on the state-wide view; a fly-to left over from another page would frame the wrong place
+  go: (page, decisionId) => set((s) => ({ page, decisionId: decisionId === undefined ? s.decisionId : decisionId, selection: null, playhead: null, fly: null, camera: 'STATE' })),
   toggleLayer: (k) => set((s) => ({ layers: { ...s.layers, [k]: !s.layers[k] } })),
   setCamera: (camera) => set((s) => ({ camera, fly: null, cameraNonce: s.cameraNonce + 1 })),
   // selecting a place on the map always flies to it; clearing keeps the camera where it is

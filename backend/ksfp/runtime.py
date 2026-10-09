@@ -22,6 +22,7 @@ from .core.clock import Clock
 from .core.settings import Settings
 from .decide.engine import DecisionEngine
 from .decide.policy import AutonomyPolicy, Envelope
+from .decide.shedding import RosterManager
 from .detect.alarms import AlarmManager, Condition
 from .detect.detector import AnomalyDetector, conditions
 from .forecast.forecaster import Forecaster
@@ -62,6 +63,7 @@ class Runtime:
         self.reliability = {a["id"]: a["reliability"] for a in topology().assets}
         self.commands = CommandManager(settings.jwt_secret)
         self.engine = DecisionEngine(self.commands, self.policy, self.reliability)
+        self.roster = RosterManager()
         self.lock = asyncio.Lock()
         self.state: GridState | None = None
         self.assessment: Assessment | None = None
@@ -104,6 +106,11 @@ class Runtime:
             dsm = await self.store.get_config("dsm_rules")
             if dsm:
                 self.dsm_cfg = dsm["value"]
+            sp = await self.store.get_config("shed_policy")
+            if sp:
+                for k, v in sp["value"].items():
+                    if hasattr(self.roster.policy, k):
+                        setattr(self.roster.policy, k, v)
             self.reliability.update(await self.store.load_reliability())
         except Exception as e:  # keep operating from memory
             log.exception("store init failed: %s", e)
@@ -221,11 +228,24 @@ class Runtime:
                 self.bus.publish("alarm.cleared", al.to_dict())
         # decide (MPC)
         inc = next((i.id for i in sorted(self.alarms.incidents.values(), key=lambda x: x.priority) if i.open and i.category in ("BALANCE", "NETWORK")), None)
+        unshed = self.unshed_load(s.bus_load)
+        self.engine.relief_mw = self.roster.shed_mw(unshed)
         touched = self.engine.step(a, now, self.forecast, inc, self.loop_healthy)
         for dd in touched:
             if dd.incident_id and dd.incident_id in self.alarms.incidents:
                 self.alarms.incidents[dd.incident_id].decision_id = dd.id
             self.bus.publish("decision.updated", dd.summary())
+        # emergency load management: shedding covers only what flexibility cannot (over-drawal, low frequency)
+        dd = self.engine.active()
+        residual = 0.0
+        if dd and dd.direction == "UP":
+            res = (dd.current.get("plan") or {}).get("residual") or [0.0]
+            residual = max(0.0, float(res[0]))
+        # follow the over-drawal the DR event was opened for: once feeders are open the instantaneous
+        # direction can flip to under-drawal, which must not read as "need gone"
+        self.roster.dsm_band_mw = min(s.schedule_mw * self.dsm_cfg["band_pct"] / 100, self.dsm_cfg["band_cap_mw"])
+        self.roster.step(now, s.frequency, dd.direction if dd else a.direction, residual, unshed)
+        self.field.shed_frac = self.roster.shed_fraction()
         # dispatch
         self.commands.tick(now, self.field, s.asset_state)
         self._drain(now)
@@ -264,7 +284,29 @@ class Runtime:
             self.field.calibrate(bus_factor, gen_factor)
             self.audit.append(self.clock.now(), "SYSTEM", "kptcl-adapter", f"Model calibrated from live KPTCL data: {len(bus_factor)} buses, {len(gen_factor)} generators")
 
+    def unshed_load(self, bus_load: dict[str, float]) -> dict[str, float]:
+        """Bus load as it would be without shedding (the field reports load after feeders are opened)."""
+        f = self.field.shed_frac
+        return {b: v / (1.0 - min(0.9, f.get(b, 0.0))) for b, v in bus_load.items()}
+
+    def _drain_roster(self, now: float) -> None:
+        for kind, ev in self.roster.events:
+            o = ev.get("order")
+            ref = o["id"] if o else None
+            self.audit.append(now, "SHED", "roster" if kind not in ("approval",) else "operator", ev["msg"], ref)
+            self.bus.publish(f"shedding.{kind}", ev)
+            if o:
+                self.dirty_docs[("shed_order", o["id"])] = (o["created"], o["state"], o)
+            if kind == "proposed":
+                al = self.alarms.event(Condition(f"event:SHED:{ref}", "SHED_PROPOSED", "BALANCE", 1, f"Load shedding proposed: {o['mw']:.0f} MW", "Flexibility exhausted — shift-in-charge approval required"), now)
+                self.dirty_docs[("alarm", al.id)] = (al.raised_at, al.state, al.to_dict())
+            elif kind == "exhausted":
+                al = self.alarms.event(Condition(f"event:SHEDX:{ref}:{now:.0f}", "ROSTER_EXHAUSTED", "BALANCE", 1, "Roster exhausted", ev["msg"]), now)
+                self.dirty_docs[("alarm", al.id)] = (al.raised_at, al.state, al.to_dict())
+        self.roster.events.clear()
+
     def _drain(self, now: float) -> None:
+        self._drain_roster(now)
         for kind, did, msg in self.engine.log:
             self.audit.append(now, kind, "dr-engine" if kind not in ("APPROVAL",) else "operator", msg, did)
         self.engine.log.clear()
@@ -398,6 +440,7 @@ class Runtime:
                 "awaiting": sum(1 for x in self.engine.decisions.values() if x.state == "AWAITING_APPROVAL"),
             },
             "active_decision": d.summary() if d else None,
+            "shedding": self.roster.summary(self.unshed_load(s.bus_load)),
             "live_setpoints": self.commands.live_setpoints(),
             "source": {"mode": self.settings.source, "kptcl": {"ok": self.kptcl.health()["pages_ok"], "total": len(self.kptcl.status), "live": len(self.kptcl.values)} if self.kptcl else None},
             "loop_ms": round(self.loop_ms, 1),

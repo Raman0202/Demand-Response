@@ -50,7 +50,7 @@ export function ResourcesPage() {
             setType('ALL')
             setCamera('STATE')
           }}
-          color="#0ea5e9"
+          color="#3a6fb0"
           name="All programmes"
           desc={`${tot.participants} participants enrolled`}
           c={tot}

@@ -23,7 +23,16 @@ interface Summary {
   delivered_mwh: number
   expected_mwh: number
   forecast_accuracy: { mape_1block_pct: number | null; samples: number } | null
-  items: { id: string; state: string; severity: string; opened_at: number; closed_at: number | null; headline: string | null; closed_reason?: string | null; settlement: Record<string, number> }[]
+  items: {
+    id: string
+    state: string
+    severity: string
+    opened_at: number
+    closed_at: number | null
+    headline: string | null
+    closed_reason?: string | null
+    settlement: Record<string, number>
+  }[]
   reliability: Record<string, number>
 }
 interface AuditEntry {

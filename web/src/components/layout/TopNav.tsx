@@ -12,6 +12,7 @@ import {
   Network,
   PauseCircle,
   PlayCircle,
+  Power,
   Receipt,
   Settings2,
   ShieldAlert,
@@ -41,6 +42,7 @@ const PRIMARY: { id: Page; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'decisions', label: 'DR Events', icon: Zap },
   { id: 'resources', label: 'Programs', icon: Users },
   { id: 'operations', label: 'Grid', icon: Network },
+  { id: 'shedding', label: 'Load Shedding', icon: Power },
   { id: 'analysis', label: 'Forecast', icon: LineChart },
   { id: 'alarms', label: 'Alarms', icon: Bell },
 ]
@@ -69,6 +71,9 @@ export function TopNav() {
       : f?.counts.decisions_open
         ? { n: f.counts.decisions_open, tone: 'bg-sky-500 text-white' }
         : null,
+    shedding: f?.shedding?.order
+      ? { n: f.shedding.groups_out || 1, tone: f.shedding.order.state === 'PROPOSED' ? 'bg-amber-500 text-white' : 'animate-pulse bg-rose-500 text-white' }
+      : null,
     alarms: f?.counts.unacked ? { n: f.counts.unacked, tone: f.counts.p1 ? 'bg-rose-500 text-white' : 'bg-amber-500 text-white' } : null,
   }
   const eff = f?.autonomy.effective ?? 0
@@ -91,7 +96,7 @@ export function TopNav() {
         <div className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-sky-400 to-emerald-400 text-white">
           <Zap className="size-4" />
         </div>
-        <div className="hidden text-left leading-tight xl:block">
+        <div className="hidden text-left leading-tight 2xl:block">
           <div className="text-sm font-semibold">Demand Response</div>
           <div className="text-[10px] text-muted-foreground">Autonomous DR operations</div>
         </div>
@@ -103,7 +108,7 @@ export function TopNav() {
             key={id}
             onClick={() => go(id)}
             className={cn(
-              'relative flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-slate-600 transition hover:bg-slate-100',
+              'relative flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[13px] font-medium whitespace-nowrap text-slate-600 transition hover:bg-slate-100',
               page === id && 'bg-sky-50 text-sky-700 ring-1 ring-sky-200',
             )}
           >
@@ -116,7 +121,7 @@ export function TopNav() {
           <DropdownMenuTrigger asChild>
             <button
               className={cn(
-                'flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[13px] font-medium text-slate-600 transition hover:bg-slate-100',
+                'flex items-center gap-1 rounded-lg px-2 py-1.5 text-[13px] font-medium whitespace-nowrap text-slate-600 transition hover:bg-slate-100',
                 MORE.some((m) => m.id === page) && 'bg-sky-50 text-sky-700 ring-1 ring-sky-200',
               )}
             >
@@ -141,12 +146,12 @@ export function TopNav() {
       <div className="ml-auto flex items-center gap-2">
         {f && (
           <>
-            <span className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide ring-1', SEVERITY_STYLE[f.severity])}>{f.severity}</span>
+            <span className={cn('rounded-full px-2.5 py-0.5 text-[11px] font-bold tracking-wide whitespace-nowrap ring-1', SEVERITY_STYLE[f.severity])}>{f.severity}</span>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   className={cn(
-                    'flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ring-1 transition',
+                    'flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-semibold whitespace-nowrap ring-1 transition',
                     f.autonomy.suspended
                       ? 'bg-rose-50 text-rose-700 ring-rose-300'
                       : degraded
@@ -192,7 +197,7 @@ export function TopNav() {
               <TooltipTrigger asChild>
                 <span
                   className={cn(
-                    'flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium ring-1',
+                    'flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap ring-1',
                     f.confidence >= 0.97 ? 'text-emerald-700 ring-emerald-200' : f.confidence >= 0.85 ? 'text-amber-700 ring-amber-200' : 'bg-rose-50 text-rose-700 ring-rose-300',
                   )}
                 >
@@ -206,7 +211,7 @@ export function TopNav() {
             </Tooltip>
             <div className="text-right leading-tight">
               <div className="font-mono text-[13px] font-semibold tabular-nums">{f.clock}</div>
-              <div className="text-[10px] text-muted-foreground">
+              <div className="text-[10px] whitespace-nowrap text-muted-foreground">
                 Block {f.block}/96{f.time_scale !== 1 && ` · sim ×${f.time_scale}`}
               </div>
             </div>

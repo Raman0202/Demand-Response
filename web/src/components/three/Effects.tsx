@@ -38,15 +38,15 @@ export function CommandWave({ targets, phase }: { targets: WaveTarget[]; phase: 
       const m = dots.current[i]
       if (!m) return
       let u: number
-      let color = '#f59e0b'
+      let color = '#c07e18'
       if (phase === 'sending') u = Math.min(1, ((time * 0.9 + i * 0.07) % 1.4) / 1)
       else if (phase === 'acking') {
         u = 1 - ((time * 0.9 + i * 0.05) % 1.2) / 1.2
-        color = t.ok ? '#22c55e' : '#ef4444'
+        color = t.ok ? '#47a37b' : '#b83b3a'
         if (!t.ok) u = 1
       } else {
         u = (time * 0.35 + i * 0.13) % 1
-        color = t.ok ? '#22c55e' : '#ef4444'
+        color = t.ok ? '#47a37b' : '#b83b3a'
       }
       m.position.copy(curve.getPoint(u))
       ;(m.material as THREE.MeshBasicMaterial).color.set(color)
@@ -64,7 +64,7 @@ export function CommandWave({ targets, phase }: { targets: WaveTarget[]; phase: 
         <group key={t.id}>
           <Line
             points={curve.getPoints(30)}
-            color={phase === 'sending' ? '#f59e0b' : t.ok ? '#22c55e' : '#ef4444'}
+            color={phase === 'sending' ? '#c07e18' : t.ok ? '#47a37b' : '#b83b3a'}
             lineWidth={1.8}
             transparent
             opacity={phase === 'done' ? 0.35 : 0.85}
@@ -80,7 +80,7 @@ export function CommandWave({ targets, phase }: { targets: WaveTarget[]; phase: 
       ))}
       <mesh ref={ring} position={[sx, STATE_TOP + 0.02, sz]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.18, 0.2, 64]} />
-        <meshBasicMaterial color="#f59e0b" transparent opacity={0} toneMapped={false} side={THREE.DoubleSide} depthWrite={false} />
+        <meshBasicMaterial color="#c07e18" transparent opacity={0} toneMapped={false} side={THREE.DoubleSide} depthWrite={false} />
       </mesh>
     </group>
   )
@@ -143,7 +143,7 @@ export function CameraRig() {
 }
 
 /** Light beams over affected participants (selection context): a soft column plus a pulsing ground ring. */
-export function Beacons({ points, color = '#0ea5e9' }: { points: { id: string; lon: number; lat: number }[]; color?: string }) {
+export function Beacons({ points, color = '#3a6fb0' }: { points: { id: string; lon: number; lat: number }[]; color?: string }) {
   const rings = useRef<(THREE.Mesh | null)[]>([])
   useFrame(({ clock }) => {
     rings.current.forEach((m, i) => {

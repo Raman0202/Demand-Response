@@ -367,7 +367,7 @@ function PlanTab({ d }: { d: Full }) {
     for (const a of cur.allocations) row[a.short] = +(a.mw_by_block[b] * a.reliability).toFixed(1)
     return row
   })
-  const colors = ['#7dd3fc', '#86efac', '#fcd34d', '#c4b5fd', '#f9a8d4', '#5eead4', '#fde68a', '#fda4af', '#bef264', '#93c5fd', '#d8b4fe', '#6ee7b7']
+  const colors = ['#8bb0da', '#86efac', '#e6b45a', '#cbc5ec', '#e2b3c7', '#5eead4', '#f0d193', '#ecb2b2', '#c2d99a', '#b7cfe9', '#cbc5ec', '#6ee7b7']
   return (
     <div className="grid h-full grid-rows-[auto_minmax(0,0.8fr)_minmax(0,1.2fr)] gap-2">
       <div className="grid grid-cols-4 gap-2 text-[11px]">
@@ -379,14 +379,14 @@ function PlanTab({ d }: { d: Full }) {
       <div className="min-h-0">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chart}>
-            <CartesianGrid stroke="#eef2f7" vertical={false} />
-            <XAxis dataKey="block" tick={{ fontSize: 10, fill: '#94a3b8' }} />
-            <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} width={40} />
+            <CartesianGrid stroke="#e6eaef" vertical={false} />
+            <XAxis dataKey="block" tick={{ fontSize: 10, fill: '#96a1ae' }} />
+            <YAxis tick={{ fontSize: 10, fill: '#96a1ae' }} width={40} />
             <RTooltip {...chartTooltip} formatter={(v) => `${Number(v).toFixed(0)} MW`} />
             {cur.allocations.map((a, i) => (
               <RBar key={a.id} dataKey={a.short} stackId="s" fill={colors[i % colors.length]} isAnimationActive={false} />
             ))}
-            <Line dataKey="requirement" stroke="#475569" strokeDasharray="5 4" dot={false} strokeWidth={2} isAnimationActive={false} />
+            <Line dataKey="requirement" stroke="#4d5867" strokeDasharray="5 4" dot={false} strokeWidth={2} isAnimationActive={false} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
@@ -742,14 +742,14 @@ function PerformanceChart({ d }: { d: Full }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <ComposedChart data={rows} margin={{ top: 4, right: 6, left: 0, bottom: 0 }}>
-        <CartesianGrid stroke="#eef2f7" vertical={false} />
-        <XAxis dataKey="label" tick={{ fontSize: 9, fill: '#94a3b8' }} minTickGap={36} />
-        <YAxis tick={{ fontSize: 9, fill: '#94a3b8' }} width={38} />
+        <CartesianGrid stroke="#e6eaef" vertical={false} />
+        <XAxis dataKey="label" tick={{ fontSize: 9, fill: '#96a1ae' }} minTickGap={36} />
+        <YAxis tick={{ fontSize: 9, fill: '#96a1ae' }} width={38} />
         <RTooltip {...chartTooltip} formatter={(v) => `${Number(v).toFixed(0)} MW`} />
         <Legend iconSize={8} wrapperStyle={{ fontSize: 10 }} />
-        <Area dataKey="delivered" name="Delivered" stroke="#10b981" fill="#a7f3d0" fillOpacity={0.6} isAnimationActive={false} />
-        <Line dataKey="dispatched" name="Dispatched" stroke="#0ea5e9" strokeWidth={1.5} dot={false} isAnimationActive={false} />
-        <Line dataKey="target" name="Target" stroke="#f59e0b" strokeDasharray="5 4" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+        <Area dataKey="delivered" name="Delivered" stroke="#2a8761" fill="#abdbc3" fillOpacity={0.6} isAnimationActive={false} />
+        <Line dataKey="dispatched" name="Dispatched" stroke="#3a6fb0" strokeWidth={1.5} dot={false} isAnimationActive={false} />
+        <Line dataKey="target" name="Target" stroke="#c07e18" strokeDasharray="5 4" strokeWidth={1.5} dot={false} isAnimationActive={false} />
       </ComposedChart>
     </ResponsiveContainer>
   )

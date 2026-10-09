@@ -12,6 +12,7 @@ import { DecisionsPage } from '@/pages/DecisionsPage'
 import { LoginPage } from '@/pages/LoginPage'
 import { OperationsPage } from '@/pages/OperationsPage'
 import { ReportsPage } from '@/pages/ReportsPage'
+import { SheddingPage } from '@/pages/SheddingPage'
 import { ResourcesPage } from '@/pages/ResourcesPage'
 import { WhatIfPage } from '@/pages/WhatIfPage'
 import { useAuth } from '@/store/useAuth'
@@ -52,6 +53,7 @@ function Shell({ token }: { token: string }) {
         {page === 'command' && <CommandCenter />}
         {page === 'operations' && <OperationsPage />}
         {page === 'decisions' && <DecisionsPage />}
+        {page === 'shedding' && <SheddingPage />}
         {page === 'alarms' && <AlarmsPage />}
         {page === 'analysis' && <AnalysisPage />}
         {page === 'whatif' && <WhatIfPage />}

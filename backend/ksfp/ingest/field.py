@@ -137,6 +137,8 @@ class SimulatedField:
             csum[g["model_gen"]] = csum.get(g["model_gen"], 0.0) + max(g["capacityMW"], 1.0)
         self.ch_gen_frac = {g["id"]: max(g["capacityMW"], 1.0) / csum[g["model_gen"]] for g in self.ch_gens}
         self.ch_noise: dict[str, float] = {c["id"]: 1.0 for c in self.ch_loads}
+        # load shedding in force: fraction of each bus's load disconnected (set by the roster manager)
+        self.shed_frac: dict[str, float] = {}
 
     def calibrate(self, bus_factor: dict[str, float], gen_factor: dict[str, float]) -> None:
         """Pull the plant toward live measurements (EWMA). Factors are measured / modelled."""
@@ -321,6 +323,9 @@ class SimulatedField:
                 gen[gid] = max(0.0, gen[gid] - d.params["mw"] * e)
             elif d.kind == "price_spike":
                 rtm = max(rtm, d.params.get("rtm", 11.0))
+        for b, f in self.shed_frac.items():
+            if b in bus_load:
+                bus_load[b] *= 1.0 - min(0.9, f)
         solar = [g for g in self.t.generators if g["type"] == "solar"]
         wind = [g for g in self.t.generators if g["type"] == "wind"]
         s_sum = sum(gen[g["id"]] for g in solar) or 1.0

@@ -382,18 +382,18 @@ function NextPanel({ forecast }: { forecast: ForecastT | null }) {
       <div className="min-h-[70px] flex-1">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={rows} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-            <CartesianGrid stroke="#e2e8f0" strokeOpacity={0.6} vertical={false} />
-            <XAxis dataKey="label" tick={{ fontSize: 9, fill: '#94a3b8' }} interval={1} />
-            <YAxis tick={{ fontSize: 9, fill: '#94a3b8' }} width={34} />
-            <ReferenceLine y={0} stroke="#cbd5e1" />
-            <ReferenceLine y={-100} stroke="#fcd34d" strokeDasharray="3 3" />
-            <ReferenceLine y={100} stroke="#fcd34d" strokeDasharray="3 3" />
+            <CartesianGrid stroke="#dde2e8" strokeOpacity={0.6} vertical={false} />
+            <XAxis dataKey="label" tick={{ fontSize: 9, fill: '#96a1ae' }} interval={1} />
+            <YAxis tick={{ fontSize: 9, fill: '#96a1ae' }} width={34} />
+            <ReferenceLine y={0} stroke="#c4ccd5" />
+            <ReferenceLine y={-100} stroke="#e6b45a" strokeDasharray="3 3" />
+            <ReferenceLine y={100} stroke="#e6b45a" strokeDasharray="3 3" />
             <RTooltip
               {...chartTooltip}
               formatter={(val) => (Array.isArray(val) ? `${Number(val[0]).toFixed(0)} … ${Number(val[1]).toFixed(0)} MW` : `${Number(val).toFixed(0)} MW`)}
             />
-            <Area dataKey="band" stroke="none" fill="#c4b5fd55" isAnimationActive={false} />
-            <Line dataKey="p50" stroke="#7c3aed" dot={false} strokeWidth={2} isAnimationActive={false} />
+            <Area dataKey="band" stroke="none" fill="#cbc5ec55" isAnimationActive={false} />
+            <Line dataKey="p50" stroke="#5c4c9b" dot={false} strokeWidth={2} isAnimationActive={false} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
